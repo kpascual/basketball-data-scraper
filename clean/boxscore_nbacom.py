@@ -1,7 +1,7 @@
 import re
 import datetime
 import csv
-from BeautifulSoup import BeautifulStoneSoup
+from bs4 import BeautifulSoup
 import os
 import json
 
@@ -18,7 +18,7 @@ class CleanBoxScore:
 
     def __init__(self, filename, gamedata, dbobj):
         self.xml = open(LOGDIR_EXTRACT + filename,'r').read()
-        self.soup = BeautifulStoneSoup(self.xml)
+        self.soup = BeautifulSoup(self.xml, 'lxml')
         self.gamedata = gamedata
         self.filename = filename
         self.db = dbobj

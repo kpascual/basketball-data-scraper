@@ -207,9 +207,9 @@ class Clean:
 
 
     def _resolvePlayDescription(self, away_play_desc, home_play_desc):
-        if away_play_desc == '&nbsp;' or away_play_desc == '':
+        if away_play_desc == '\xc2\xa0' or away_play_desc == '&nbsp;' or away_play_desc == '':
             return home_play_desc
-        elif home_play_desc == '&nbsp;' or home_play_desc == '':
+        elif home_play_desc == '\xc2\xa0' or home_play_desc == '&nbsp;' or home_play_desc == '':
             return away_play_desc
 
         return ''

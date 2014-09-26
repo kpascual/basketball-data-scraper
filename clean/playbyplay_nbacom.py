@@ -2,9 +2,10 @@ import re
 import datetime
 import time
 import json
-from BeautifulSoup import BeautifulStoneSoup
-import find_player
 import logging
+
+from bs4 import BeautifulSoup
+import find_player
 
 from config import db
 from config import constants 
@@ -44,7 +45,7 @@ class Clean:
         PLAY_TYPE_NBACOM_JUMPBALL = 18
         PLAY_TYPES_NBACOM_PLAYER2_SAME = [12,14,24,55]
 
-        soup = BeautifulStoneSoup(open(LOGDIR_SOURCE + self.filename,'r').read())
+        soup = BeautifulSoup(open(LOGDIR_SOURCE + self.filename,'r').read(), 'xml')
         playbyplaydata = soup.findAll("event")
 
         cleaned_plays = []

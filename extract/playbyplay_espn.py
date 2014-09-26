@@ -1,5 +1,6 @@
 from config import constants
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
+#from BeautifulSoup import BeautifulSoup
 import csv
 import re
 import logging
@@ -46,13 +47,15 @@ class Extract:
 
 
     def _getData(self):
-        self.soup = BeautifulSoup(self.html)
+        self.soup = BeautifulSoup(self.html,'lxml')
+        #self.soup = BeautifulSoup(self.html)
         
-        table = self.soup.find(attrs={'class':re.compile('.*mod-data.*')})
+        #table = self.soup.find(attrs={'class':re.compile('.*mod-data.*')})
+        table = self.soup.find(class_=re.compile('.*mod-data.*'))
         if table:
-            rows = table.findAll('tr')
+            rows = table.find_all('tr')
             if rows:
-                numberedrows = [(i,row) for i,row in enumerate(table.findAll('tr'))]
+                numberedrows = [(i,row) for i,row in enumerate(table.find_all('tr'))]
                 return numberedrows
 
         return []

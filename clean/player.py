@@ -1,4 +1,4 @@
-from BeautifulSoup import BeautifulStoneSoup
+from bs4 import BeautifulSoup
 import csv
 import json
 import os
@@ -28,7 +28,7 @@ class PlayerNbaCom:
     def __init__(self, filename, gamedata, dbobj):
         self.gamedata = gamedata
         self.xml = open(filename,'r').read()
-        self.soup = BeautifulStoneSoup(self.xml)
+        self.soup = BeautifulSoup(self.xml, 'lxml')
         self.date_played = self.gamedata['date_played']
         self.db = dbobj
 

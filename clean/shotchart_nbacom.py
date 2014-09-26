@@ -1,4 +1,5 @@
-from BeautifulSoup import BeautifulStoneSoup
+#from BeautifulSoup import BeautifulStoneSoup
+from bs4 import BeautifulSoup
 import csv
 import os
 import datetime
@@ -19,7 +20,7 @@ class Clean:
     def __init__(self, filename, gamedata, dbobj):
         self.xml = open(LOGDIR_EXTRACT + filename,'r').read()
         self.filename = filename
-        self.soup = BeautifulStoneSoup(self.xml)
+        self.soup = BeautifulSoup(self.xml, 'lxml')
         self.date_played = filename.replace(LOGDIR_EXTRACT,'')[:10]
         self.gamedata = gamedata
         self.db = dbobj
