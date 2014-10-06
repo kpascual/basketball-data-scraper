@@ -39,7 +39,7 @@ class League:
         return self.dbobj.query_dict("""
             SELECT *
             FROM team
-            WHERE season = '%s'
+            WHERE league_season_id = '%s'
         """ % (season))
 
 

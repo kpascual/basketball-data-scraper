@@ -2,241 +2,287 @@ from bs4 import BeautifulSoup
 import urllib2
 import re
 import datetime
-from config import db
-from config import config
 import time
 import json
 
+import db
+from config import config
+import configg
+import league
+
 
 # A script that scrapes ESPN.com's scoreboard to retrieve ESPN's game_id and store into MySQL db
-dbobj = db.Db(config.dbconn_prod_nba)
 
-def getEspnScoreboardDoc(dt): 
-    url = 'http://espn.go.com/nba/scoreboard?date=%s' % dt.isoformat().replace('-','')
-    response = urllib2.urlopen(url)
-    return response.read()
+# Going back to a singleton database object
+dbobj = configg.dbobj
+
+class FindGames:
+
+    def __init__(self, league_season_id = False):
+        self.league_season_id = league_season_id
 
 
-def getEspnData(html, season):
-    soup = BeautifulSoup(html)
-    links = soup.findAll(href=re.compile("/nba/conversation.*"))
-    links = list(set(links))
-    
-    game_ids = []
-    for l in links:
-        match = re.search("/nba/conversation\?gameId=(?P<game_id>[0-9]+)$",l['href'])
+    def run(self, dt):
+        pass
+
+
+    def parse(self):
+        pass
+
+
+    def _getRecentLeagueSeasonId(self, league_obj):
+        if league_obj and not self.league_season_id:
+            self.league_season_id = league_obj._getLeagueSeason()['id']
+
+
+class FindGamesEspnNba(FindGames):
+
+    def __init__(self, league_season_id = False):
+        self.league_name = 'nba'
+        self.league_obj = league.League(dbobj, self.league_name)
+        FindGames.__init__(self, league_season_id)
+        self._getRecentLeagueSeasonId(self.league_obj)
+
+
+    def parse(self, dt):
+        html_espn = self._getScoreboardDoc(dt)
+        data_espn = self._getData(html_espn)
+        data = self._translateEspnGameData(data_espn, dt)
+        return data
+
+
+    def _getScoreboardDoc(self, dt): 
+        url = 'http://espn.go.com/nba/scoreboard?date=<date>'
+        response = urllib2.urlopen(url.replace('<date>', dt.isoformat().replace('-', '')))
+        return response.read()
+
+
+    def _getData(self, html):
+        soup = BeautifulSoup(html, 'lxml')
+        links = soup.findAll(href=re.compile("/%s/conversation.*" % (self.league_name)))
         
-        if match:
-            found = match.groupdict()
-            game_ids.append(found['game_id'])
+        game_ids = []
+        for l in links:
+            match = re.search("/%s/conversation\?gameId=(?P<game_id>[0-9]+)$" % (self.league_name),l['href'])
+            
+            if match:
+                found = match.groupdict()
+                game_ids.append(found['game_id'])
 
-    game_info = []
-    for game_id in game_ids:
+        game_info = []
+        for game_id in game_ids:
+            
+            try:
+                away_team_id = 0
+                team_div = soup.select('#%s-aNameOffset' % game_id)
+                if team_div and hasattr(team_div[0], 'a'):
+                    away_team_id, away_team, away_team_nbacom, away_team_nickname = self._findTeamName(team_div[0].a.contents[0])
+
+                home_team_id = 0
+                team_div = soup.select('#%s-hNameOffset' % game_id)
+                if team_div and hasattr(team_div[0], 'a'):
+                    home_team_id, home_team, home_team_nbacom, home_team_nickname = self._findTeamName(team_div[0].a.contents[0])
+
+
+                game_info.append(
+                    {'espn_game_id':game_id, 'away_team': away_team, 
+                    'home_team': home_team, 'away_team_nbacom': away_team_nbacom, 'home_team_nbacom': home_team_nbacom,
+                    'away_team_id': away_team_id, 'home_team_id': home_team_id, 
+                    'away_team_nickname': away_team_nickname, 'home_team_nickname': home_team_nickname
+                    }
+                )
+            except Exception as e:
+                print "Team not found. Skipping."
+                print e
+
+        return game_info
+
+
+    def _translateEspnGameData(self, game_data, dt):
+
+        final = []
+        for g in game_data:
+            g['date_played'] = dt
+            g['abbrev'] = '%s_%s@%s' % (dt, g['away_team'], g['home_team'])
+            g['away_team_code'] = g['away_team']
+            g['home_team_code'] = g['home_team']
+            g['nbacom_game_id'] = '%s/%s%s' % (dt.isoformat().replace('-',''), g['away_team_nbacom'], g['home_team_nbacom'])
+            g['cbssports_game_id'] = g['abbrev'].replace('-','')
+            g['permalink'] = g['away_team_nickname'] + '-at-' + g['home_team_nickname'] + '-' + dt.strftime("%B-%d-%Y")
+            g['permalink'] = g['permalink'].replace('-0','-').lower()
+            g['league_season_id'] = self.league_season_id
+            final.append(g)
+
+            del g['away_team_nickname']
+            del g['home_team_nickname']
+            del g['away_team_nbacom']
+            del g['home_team_nbacom']
+
+        return final
+
+
+    def _findTeamName(self, name):
+        teams = self.league_obj.getTeams(self.league_season_id)
         
-        try:
-            away_team_id = 0
-            team_div = soup.findAll(id='%s-aTeamName' % game_id)
-            if team_div and hasattr(team_div[0], 'a'):
-                away_team_id, away_team, away_team_nbacom, away_team_nickname = _findTeamName(team_div[0].a.renderContents(), season)
+        for team in teams:
+            if name == team['nickname'] or name == team['alternate_nickname']:
+                return (team['id'], team['code'],team['nbacom_code'], team['nickname'])
+            else:
+                pass
 
-            home_team_id = 0
-            team_div = soup.findAll(id='%s-hTeamName' % game_id)
-            if team_div and hasattr(team_div[0], 'a'):
-                home_team_id, home_team, home_team_nbacom, home_team_nickname = _findTeamName(team_div[0].a.renderContents(), season)
+        return (0,'unk','unk','unknown') 
 
 
-            game_info.append(
-                {'espn_game_id':game_id, 'away_team': away_team, 
-                'home_team': home_team, 'away_team_nbacom': away_team_nbacom, 'home_team_nbacom': home_team_nbacom,
-                'away_team_id': away_team_id, 'home_team_id': home_team_id, 
-                'away_team_nickname': away_team_nickname, 'home_team_nickname': home_team_nickname
-                }
-            )
-        except:
-            print "Team not found. Skipping."
+class FindGamesEspnWnba(FindGamesEspnNba):
+
+    def __init__(self, league_season_id = False):
+        self.league_name = 'wnba'
+        self.league_obj = league.League(dbobj, self.league_name)
+        FindGames.__init__(self, league_season_id)
+        self._getRecentLeagueSeasonId(self.league_obj)
+
+    def _getScoreboardDoc(self, dt):
+        url = 'http://espn.go.com/wnba/scoreboard?date=<date>'
+        response = urllib2.urlopen(url.replace('<date>', dt.isoformat().replace('-', '')))
+        return response.read()
 
 
 
-    return game_info
+class FindGamesStatsNbaCom(FindGames):
+
+    def __init__(self, league_season_id = False):
+        self.league_name = 'nba'
+        self.league_obj = league.League(dbobj, self.league_name)
+        FindGames.__init__(self, league_season_id)
+        self._getRecentLeagueSeasonId(self.league_obj)
+
+    def run(self):
+        pass
 
 
-def _findTeamName(name, season):
-    teams = _getTeamData(season)
-    
-    for team in teams:
-        if name == team['nickname'] or name == team['alternate_nickname']:
-            return (team['id'], team['code'],team['nbacom_code'], team['nickname'])
+    def parse(self, dt):
+        data = self._getData(dt)
+        data = self._resolve(data)
+        return data
+
+
+    def _getData(self, dt):
+        dt_formatted = dt.strftime("%m/%d/%Y")
+        url = 'http://stats.nba.com/stats/scoreboard/?LeagueID=00&gameDate=%s&DayOffset=0' % (dt_formatted)
+        response = urllib2.urlopen(url)
+        raw = response.read()
+
+        games = []
+        data = json.loads(raw)
+        for line in data['resultSets']:
+            if line['name'] == 'GameHeader':
+                for row in line['rowSet']:
+                    games.append(dict(zip(line['headers'], row)))
+
+        return games
+
+
+    def _resolve(self, data):
+        resolved_data = []
+        for line in data:
+            newline = {}
+            home_team = dbobj.query_dict("SELECT * FROM team WHERE statsnbacom_team_id = %s AND league_season_id = %s" % (line['HOME_TEAM_ID'], self.league_season_id))
+            if home_team:
+                newline['home_team_id'] = home_team[0]['id']
+            else:
+                newline['home_team_id'] = line['HOME_TEAM_ID'] * -1
+            away_team = dbobj.query_dict("SELECT * FROM team WHERE statsnbacom_team_id = %s AND league_season_id = %s" % (line['VISITOR_TEAM_ID'], self.league_season_id))
+            if away_team:
+                newline['away_team_id'] = away_team[0]['id']
+            else:
+                newline['away_team_id'] = line['VISITOR_TEAM_ID'] * -1
+            newline['statsnbacom_game_id'] = line['GAME_ID']
+            newline['nbacom_game_id'] = line['GAMECODE']
+            newline['gametime'] = line['GAME_STATUS_TEXT']
+            newline['national_tv'] = line['NATL_TV_BROADCASTER_ABBREVIATION']
+            newline['league_season_id'] = self.league_season_id
+
+            resolved_data.append(newline)
+
+        return resolved_data
+
+
+
+def merge(data):
+
+    games = {}
+
+    for line in data:
+        if (line['away_team_id'], line['home_team_id']) not in games.keys():
+            games[(line['away_team_id'], line['home_team_id'])] = {}
+
+        games[(line['away_team_id'], line['home_team_id'])].update(line)
+
+
+    return games
+
+
+def getDay(league_id, league_season_id, date):
+    print date.isoformat()
+    league_map = {
+        1: [FindGamesEspnNba, FindGamesStatsNbaCom], # NBA
+        2: [FindGamesEspnWnba], # WNBA
+    }
+
+
+    game_items = []
+    for l in league_map[league_id]:
+        obj = l(league_season_id)
+        data = obj.parse(date)
+        game_items.extend(data)
+
+
+    games = merge(game_items)
+    print "%s GAMES FOUND:" % (len(games))
+    for key, g in games.items():
+        print key
+        print g
+        print '\n'
+
+
+def getInputs():
+    start_date_input = raw_input('Choose START date (yyyy-mm-dd or blank for today\'s date of %s): ' % (datetime.date.today()))
+    if not start_date_input:
+        start_date_input = datetime.date.today()
+        end_date_input = start_date_input
+    else:
+        start_date_input = datetime.datetime.strptime(start_date_input, '%Y-%m-%d')
+        end_date_input = raw_input('Choose END date (yyyy-mm-dd or blank for START date): ')
+        if not end_date_input:
+            end_date_input = datetime.date.today()
         else:
-            pass
-
-    return (0,'unk','unk','unknown') 
+            end_date_input = datetime.datetime.strptime(end_date_input, '%Y-%m-%d')
 
 
-def _getTeamData(season):
-    result = dbobj.query_dict("SELECT * FROM team WHERE is_active = 1 AND season = '%s'" % (season)) 
-    return result 
+    leagues = dbobj.query_dict("SELECT * FROM league")
+    for l in leagues:
+        print '%s:   %s' % (l['id'], l['name'])
+    league_input = raw_input('Choose league: ')
+    league_input = int(league_input)
 
+    league_seasons = dbobj.query_dict("SELECT ls.id, s.name as season_name FROM league_season ls INNER JOIN league l ON l.id = ls.league_id INNER JOIN season s ON s.id = ls.season_id WHERE l.id = %s" % (league_input))
+    for ls in league_seasons:
+        print '%s:   %s' % (ls['id'], ls['season_name'])
+    league_season_input = raw_input('Choose season: ')
 
-def _translateEspnGameData(game_data, dt, current_season, season_type):
-
-    final = []
-    for g in game_data:
-        g['date_played'] = dt
-        g['abbrev'] = '%s_%s@%s' % (dt, g['away_team'], g['home_team'])
-        g['away_team_code'] = g['away_team']
-        g['home_team_code'] = g['home_team']
-        g['nbacom_game_id'] = '%s/%s%s' % (dt.isoformat().replace('-',''), g['away_team_nbacom'], g['home_team_nbacom'])
-        g['cbssports_game_id'] = g['abbrev'].replace('-','')
-        g['permalink'] = g['away_team_nickname'] + '-at-' + g['home_team_nickname'] + '-' + dt.strftime("%B-%d-%Y")
-        g['permalink'] = g['permalink'].replace('-0','-').lower()
-        g['season'] = current_season
-        g['season_type'] = season_type
-        final.append(g)
-
-        del g['away_team_nickname']
-        del g['home_team_nickname']
-        del g['away_team_nbacom']
-        del g['home_team_nbacom']
-
-    return final
-
-
-def _writeToDatabase(game, date_played):
-    curs = dbobj.curs()
-
-    sql = """
-        INSERT IGNORE INTO game_temp (%s) VALUES (%s)
-    """ % (','.join([field for field,val in sorted(game.items())]),','.join(["'%s'" % val for field,val in sorted(game.items())]))
-    
-    curs.execute(sql)
-
-    # Get the game id -- on ignore, lastrowid won't return a value
-    curs.execute("""
-        SELECT id
-        FROM game
-        WHERE date_played = '%s' AND home_team_id = %s AND away_team_id = %s
-    """ % (game['date_played'], game['home_team_id'], game['away_team_id']))
-    game_id = curs.fetchone()
-    #print game_id
-
-
-    if game['season_type'] == 'POST':
-        curs.execute("""
-            SELECT id 
-            FROM
-                playoff_series
-            WHERE
-                season = '%s'
-                AND (team1_id = '%s' AND team2_id = '%s')
-                OR (team1_id = '%s' AND team2_id = '%s')
-        """ % (game['season'], game['home_team_id'], game['away_team_id'], game['away_team_id'], game['home_team_id']))
-        playoff_series = curs.fetchone()
-        print playoff_series
-
-        if playoff_series:
-            sql = """
-                INSERT INTO rel_playoff_game (game_id, playoff_series_id) VALUES (%s, %s)
-            """ % (game_id[0], playoff_series[0])
-            curs.execute(sql)
-            print sql
-
-def getUrl(url):
-    response = urllib2.urlopen(url)
-    return response.read()
-
-
-def getStatsNbaComData(dt):
-    dt_formatted = dt.strftime("%m/%d/%Y")
-    url = 'http://stats.nba.com/stats/scoreboard/?LeagueID=00&gameDate=%s&DayOffset=0' % (dt_formatted)
-    raw = getUrl(url)
-    games = []
-    
-    data = json.loads(raw)
-    for line in data['resultSets']:
-        if line['name'] == 'GameHeader':
-            for row in line['rowSet']:
-                games.append(dict(zip(line['headers'], row)))
-
-    return games
-
-
-def saveStatsNbaCom():
-    dbobj = db.Db(config.dbconn_prod_nba)
-
-    f = open('games.json','r')
-
-    lines = f.readlines()
-    for line in lines:
-        data = json.loads(line.rstrip())
-        if data:
-            for row in data:
-                sql = """
-                    UPDATE game
-                    SET national_tv = '%s',
-                        statsnbacom_game_id = '%s',
-                        gametime = '%s'
-                    WHERE
-                        nbacom_game_id = '%s'
-                """ % (row['NATL_TV_BROADCASTER_ABBREVIATION'], row['GAME_ID'], row['GAME_STATUS_TEXT'], row['GAMECODE'])
-                dbobj.query(sql)
-
-
-def mergeEspnStatsNbaComData(data_espn, data_stats_nbacom):
-    games = []
-    for line_espn in data_espn:
-        line_espn['statsnbacom_game_id'] = 0
-        for line_stats_nbacom in data_stats_nbacom:
-            if line_espn['nbacom_game_id'] == line_stats_nbacom['GAMECODE']:
-                line_espn['statsnbacom_game_id'] = line_stats_nbacom['GAME_ID']
-                line_espn['national_tv'] = line_stats_nbacom['NATL_TV_BROADCASTER_ABBREVIATION']
-                line_espn['gametime'] = line_stats_nbacom['GAME_STATUS_TEXT']
-
-        games.append(line_espn)
-
-
-    return games
-
-
-
-def backfill():
-
-    start_dt = datetime.date(2014,4,16)
-    end_dt = datetime.date(2014,4,20)
-    dt = start_dt
-    f = open('games.json','a')
-
-    while dt < end_dt:
-
-        print dt
-        f.write(json.dumps(statsNbaCom(dt)))
-        f.write('\n')
-
+    dt = start_date_input
+    while dt <= end_date_input:
+        getDay(league_input, league_season_input, dt)
         dt = dt + datetime.timedelta(days=1)
-        time.sleep(3)
+        dt.strftime('%Y-%m-%d':
 
 
-def main():
-    dt = datetime.date.today()
-    go(dt, '2013-2014', 'POST')
 
 
-def go(dt, season, season_type):
-    
-    # ESPN Data
-    html_espn = getEspnScoreboardDoc(dt)
-    data_espn = getEspnData(html_espn, season)
-    data_espn = _translateEspnGameData(data_espn, dt, season, season_type)
 
-    # stats.nba.com data
-    data_stats_nbacom = getStatsNbaComData(dt)
-    
-    data_combined = mergeEspnStatsNbaComData(data_espn, data_stats_nbacom)
 
-    for game in data_combined:
-        print game
-        dbobj.insert_or_update('game',[game])
     
 
 
 if __name__ == '__main__':
-    main()
+    getInputs()
