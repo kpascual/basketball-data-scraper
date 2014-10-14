@@ -29,3 +29,5 @@ def run(filename, dbobj):
         newshots.append(shot)
 
     dbobj.insert_or_update('shotchart_nbacom', newshots)
+
+    return len(newshots)

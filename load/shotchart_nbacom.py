@@ -30,4 +30,4 @@ def run(filename, dbobj):
 
     dbobj.insert_or_update('shotchart_nbacom', newshots)
     
-
+    return len(newshots)

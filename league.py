@@ -3,17 +3,25 @@ from config import config
 
 class League:
 
-    def __init__(self, dbobj, name):
+    def __init__(self, dbobj, name = '', league_id = '', league_season_id = 0):
         self.dbobj = dbobj
         self.name = name
-        self.obj = self._getLeague()
-        if self.obj:
-            self.league_season = self._getLeagueSeason()
+        if name:
+            self.obj = self._getLeagueByName(name)
+        elif league_id:
+            self.obj = self._getLeagueById(league_id)
+
+        if league_season_id:
+            self.league_season = self._getLeagueSeason(league_season_id)
+        elif self.obj:
+            self.league_season = self._getCurrentLeagueSeason()
         else:
             self.league_season = False
 
 
-    def getGames(self, dt):
+    def getGames(self, dt, league_season_id = ''):
+        if not league_season_id:
+            league_season_id = self.league_season['id']
         return self.dbobj.query_dict("""
             SELECT g.*, home_team.city home_team_city, away_team.city away_team_city 
             FROM game g 
@@ -22,7 +30,7 @@ class League:
             WHERE g.date_played = '%s'
                 AND g.should_fetch_data = 1
                 AND g.league_season_id = %s
-        """ % (dt, self.league_season['id']))
+        """ % (dt, league_season_id))
 
 
     def getSeason(self, dt):
@@ -67,16 +75,32 @@ class League:
 
 
 
-    def _getLeague(self):
-        query = self.dbobj.query_dict("SELECT * FROM league WHERE name = '%s'" % (self.name))
+    def _getLeagueByName(self, name):
+        query = self.dbobj.query_dict("SELECT * FROM league WHERE name = '%s'" % (name))
         if query:
             return query[0]
         else:
             return False
 
 
-    def _getLeagueSeason(self):
-        query = self.dbobj.query_dict("SELECT * FROM league_season WHERE league_id = %s AND is_current = 1" % (self.obj['id']))
+    def _getLeagueById(self, id):
+        query = self.dbobj.query_dict("SELECT * FROM league WHERE id = '%s'" % (id))
+        if query:
+            return query[0]
+        else:
+            return False
+
+
+    def _getCurrentLeagueSeason(self):
+        query = self.dbobj.query_dict("SELECT ls.*, s.name as season_name FROM league_season ls INNER JOIN season s ON s.id = ls.season_id WHERE ls.league_id = %s AND ls.is_current = 1" % (self.obj['id']))
+        if query:
+            return query[0]
+        else:
+            return False
+
+
+    def _getLeagueSeason(self, league_season_id):
+        query = self.dbobj.query_dict("SELECT ls.*, s.name as season_name FROM league_season ls INNER JOIN season s ON s.id = ls.season_id WHERE ls.id = %s" % (league_season_id))
         if query:
             return query[0]
         else:

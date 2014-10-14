@@ -39,7 +39,9 @@ def func_shotchart_cbssports(game):
 
 
 def func_playbyplay_nbacom(game):
-    return getSourceDoc(constants.URL['playbyplay_nbacom'].replace('<game_id>',str(game['nbacom_game_id']))) 
+    url = constants.URL['playbyplay_nbacom'].replace('<game_id>',str(game['nbacom_game_id']))
+    print '   + %s' % (url)
+    return getSourceDoc(url) 
 
 
 def func_shotchart_nbacom(game):
@@ -59,7 +61,7 @@ def func_shotchart_espn(game):
 
 
 def func_shotchart_wnbacom(game):
-    return getSourceDoc(constants.URL['shotchart_nbacom'].replace('<game_id>',str(game['nbacom_game_id']))) 
+    return getSourceDoc(constants.URL['shotchart_wnbacom'].replace('<game_id>',str(game['nbacom_game_id']))) 
 
 
 def func_playbyplay_statsnbacom(game):
@@ -72,6 +74,23 @@ def func_shotchart_statsnbacom(game):
 
 def func_boxscore_statsnbacom(game):
     return getSourceDoc(constants.URL['boxscore_statsnbacom'].replace('<game_id>',str(game['statsnbacom_game_id']))) 
+
+
+def func_boxscore_wnbacom(game):
+    return getSourceDoc(constants.URL['boxscore_wnbacom'].replace('<game_id>',str(game['nbacom_game_id']))) 
+
+
+def func_playbyplay_espn_wnba(game):
+    return getSourceDoc(constants.URL['playbyplay_espn_wnba'].replace('<game_id>',str(game['espn_game_id']))) 
+
+
+def func_playbyplay_wnbacom(game):
+    return getSourceDoc(constants.URL['playbyplay_wnbacom'].replace('<game_id>',str(game['nbacom_game_id']))) 
+
+def func_shotchart_espn_wnba(game):
+    return getSourceDoc(constants.URL['shotchart_espn_wnba'].replace('<game_id>',str(game['espn_game_id']))) 
+
+
 
 
 def getAndSaveFiles(game, files):

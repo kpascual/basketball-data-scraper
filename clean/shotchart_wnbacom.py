@@ -7,6 +7,8 @@ from config import db
 from config import constants 
 from config import config
 
+from bs4 import BeautifulSoup
+
 
 
 LOGDIR_CLEAN = constants.LOGDIR_CLEAN

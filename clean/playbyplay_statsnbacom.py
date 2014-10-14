@@ -117,7 +117,10 @@ class Clean:
     def _resolveDecisecondsLeft(self, plays):
         data = []
         for play in plays:
-            time_left = play['pctimestring'].split(':')        
+            if ':' in play['pctimestring']:
+                time_left = play['pctimestring'].split(':')        
+            else:
+                time_left = (play['pctimestring'], 0)
             play['deciseconds_left'] = (int(time_left[0]) * 60 + int(time_left[1])) * 10
             data.append(play)
 

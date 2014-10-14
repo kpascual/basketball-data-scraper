@@ -1,4 +1,3 @@
-from BeautifulSoup import BeautifulStoneSoup
 from bs4 import BeautifulSoup
 import csv
 import os

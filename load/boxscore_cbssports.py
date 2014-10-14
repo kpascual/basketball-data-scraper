@@ -15,3 +15,5 @@ def run(filename, dbobj):
         newdata.append(dict(zip(fields,line)))
     
     dbobj.insert_or_update('boxscore_cbssports',newdata)
+
+    return len(newdata)

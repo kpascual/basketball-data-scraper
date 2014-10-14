@@ -169,16 +169,10 @@ def go(tuple_games_and_files, dbobj):
             step_time = time.time()
 
             lib = importlib.import_module('load.%s' % (module))
-            getattr(lib, 'run')(filename, dbobj)
+            rows_loaded = getattr(lib, 'run')(filename, dbobj)
 
-            #getattr(obj,"load_" + module)(filename)
-            print "  + %s: %.2f sec" % (module, time.time() - step_time)
+            print "  + %s - %s rows loaded - %.2f sec" % (module, rows_loaded, time.time() - step_time)
 
-            #if module == 'boxscore_nbacom':
-            #    getattr(obj,'load_game_stats')(filename + '_game_stats')
-            #elif module == 'boxscore_statsnbacom':
-            #    getattr(obj,'load_game_stats_statsnbacom')(filename + '_game_stats')
-            #    getattr(obj,'load_game_stats_team_statsnbacom')(filename + '_game_stats_team')
 
         logging.info("LOAD - game_id: %s - time_elapsed %.2f" % (gamedata['id'], time.time() - s_time))
         

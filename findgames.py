@@ -238,6 +238,8 @@ def getDay(league_id, league_season_id, date):
 
 
     games = merge(game_items)
+    games_list = [g for key, g in games.items()]
+    dbobj.insert_or_update('game', games_list)
     print "%s GAMES FOUND:" % (len(games))
     for key, g in games.items():
         print key
@@ -251,12 +253,12 @@ def getInputs():
         start_date_input = datetime.date.today()
         end_date_input = start_date_input
     else:
-        start_date_input = datetime.datetime.strptime(start_date_input, '%Y-%m-%d')
+        start_date_input = datetime.datetime.strptime(start_date_input, '%Y-%m-%d').date()
         end_date_input = raw_input('Choose END date (yyyy-mm-dd or blank for START date): ')
         if not end_date_input:
-            end_date_input = datetime.date.today()
+            end_date_input = start_date_input
         else:
-            end_date_input = datetime.datetime.strptime(end_date_input, '%Y-%m-%d')
+            end_date_input = datetime.datetime.strptime(end_date_input, '%Y-%m-%d').date()
 
 
     leagues = dbobj.query_dict("SELECT * FROM league")
@@ -271,10 +273,14 @@ def getInputs():
     league_season_input = raw_input('Choose season: ')
 
     dt = start_date_input
+    i = 1
     while dt <= end_date_input:
         getDay(league_input, league_season_input, dt)
         dt = dt + datetime.timedelta(days=1)
-        dt.strftime('%Y-%m-%d':
+
+        i = i + 1
+        if i % 3 == 0:
+            time.sleep(5)
 
 
 

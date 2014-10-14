@@ -201,7 +201,12 @@ class Clean:
 
             if 'min' in line.keys(): 
                 if line['min'] is not None:
-                    minutes, seconds = line['min'].split(':')
+                    if type(line['min']) is str:
+                        minutes, seconds = line['min'].split(':')
+                    elif type(line['min']) is int:
+                        minutes = line['min']
+                        seconds = 0
+
                     line[key_name] = (int(minutes) * 60 + int(seconds)) * 10
 
                 del line['min']

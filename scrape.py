@@ -79,37 +79,31 @@ def scrapeAuto(league_name, dt, files = None):
     print "+++ MASTER ETL - league: %s - database: %s" % (league_name, config_no_pw)
     logging.info("MASTER - starting ETL job - league: %s - date: %s - database: %s" % (league_name, dt, config_no_pw))
 
-    scrape(configg.dbobj, league_name, dt, files)
+    args = {'dbobj': configg.dbobj, 'league_name': league_name, 'dt': dt, 'files': files}
+    scrape(**args)
 
     time_elapsed = "Total time: %.2f sec" % (time.time() - step_time)
     logging.info(time_elapsed)
 
 
-def scrape(dbobj, league_name, dt, files):
-    if not files:
-        files = [
-            'boxscore_nbacom',
-            'boxscore_cbssports',
-            'playbyplay_espn',
-            'playbyplay_nbacom',
-            'shotchart_cbssports',
-            'shotchart_espn',
-            'shotchart_nbacom',
-            'playbyplay_statsnbacom',
-            'shotchart_statsnbacom',
-            'boxscore_statsnbacom'
-        ]
+def scrape(dbobj, dt, files, league_name = '', league_id = 0, league_season_id = 0):
 
-    # Choose games
-    lgobj = league.League(dbobj, league_name)
+    # Get league-level info from user-input
+    args = {'dbobj': dbobj, 'name': league_name, 'league_id': league_id, 'league_season_id': league_season_id}
+    lgobj = league.League(**args)
+
     if not lgobj.obj or not lgobj.league_season:
         print "Could not find league. Quitting."
         return False
     else:
         print "+++ League identified: %s" % (str(lgobj.obj))
         print "+++ League season identified: %s" % (str(lgobj.league_season))
+
+        # Choose games
         games = lgobj.getGames(dt)
-        files = lgobj.getModules()
+        print "+++ %s games found" % (len(games))
+        if not files:
+            files = lgobj.getModules()
 
         # Get source
         gamedata = source.main.go(games, files)
@@ -131,6 +125,45 @@ def backfill(league = '', league_id = 0, league_season_id = 0, start_date = 0, e
     pass
 
 
+def menu():
+    # Choose league
+    leagues = configg.dbobj.query_dict("SELECT * FROM league")
+    print 'ID:   League Name'
+    for l in leagues:
+        print '%s:   %s' % (l['id'], l['name'])
+    league_input = raw_input('Choose league by ID: ')
+    league_input = int(league_input)
+
+    # Choose league season
+    league_seasons = configg.dbobj.query_dict("SELECT ls.id, s.name as season_name FROM league_season ls INNER JOIN league l ON l.id = ls.league_id INNER JOIN season s ON s.id = ls.season_id WHERE l.id = %s" % (league_input))
+    print 'ID:   Season Name'
+    for ls in league_seasons:
+        print '%s:   %s' % (ls['id'], ls['season_name'])
+    league_season_input = raw_input('Choose season: ')
+
+    # Choose dates to scrape
+    start_date_input = raw_input('Choose START date (yyyy-mm-dd or blank for today\'s date of %s): ' % (datetime.date.today()))
+    if not start_date_input:
+        start_date_input = datetime.date.today()
+        end_date_input = start_date_input
+    else:
+        start_date_input = datetime.datetime.strptime(start_date_input, '%Y-%m-%d').date()
+        end_date_input = raw_input('Choose END date (yyyy-mm-dd or blank for START date): ')
+        if not end_date_input:
+            end_date_input = start_date_input
+        else:
+            end_date_input = datetime.datetime.strptime(end_date_input, '%Y-%m-%d').date()
+
+
+    files = []
+    dt = start_date_input
+    while dt <= end_date_input:
+        args = {'dbobj': configg.dbobj, 'league_id': league_input, 'dt': dt, 'files': files, 'league_season_id': league_season_input}
+        scrape(**args)
+
+        dt = dt + datetime.timedelta(days=1)
+
+
 def main():
 
     files = []
@@ -145,9 +178,11 @@ def main():
         dt = datetime.date.today() - datetime.timedelta(days=1)
 
     print dt
-    scrapeAuto(league_name, dt, files)
-    #obj = Scrape(league='nba')
-    
+    if len(sys.argv) > 1:
+        scrapeAuto(league_name, dt, files)
+    else:
+        menu()
+
 
 if __name__ == '__main__':
     main()

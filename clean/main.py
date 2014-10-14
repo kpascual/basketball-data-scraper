@@ -53,6 +53,10 @@ def go(tuple_games_and_files, dbobj):
             obj = player.PlayerNbaCom(LOGDIR_EXTRACT + files['boxscore_nbacom'], gamedata, dbobj)
             obj.resolveNewPlayers()
     
+        if 'boxscore_wnbacom' in files:
+            obj = player.PlayerNbaCom(LOGDIR_EXTRACT + files['boxscore_wnbacom'], gamedata, dbobj)
+            obj.resolveNewPlayers()
+    
         if 'shotchart_cbssports' in files:
             obj = player.PlayerCbsSports(LOGDIR_EXTRACT + files['shotchart_cbssports'] + '_players', gamedata, dbobj)
             obj.resolveNewPlayers()
@@ -60,6 +64,15 @@ def go(tuple_games_and_files, dbobj):
 
         if 'boxscore_statsnbacom' in files:
             obj = player.PlayerStatsNbaCom(LOGDIR_EXTRACT + files['boxscore_statsnbacom'], gamedata, dbobj)
+            obj.resolveNewPlayers()
+
+            # Resolve with master player list
+            obj = player.Resolve(dbobj)
+            obj.resolveStatsNbacom()
+            obj.resolveStatsNbacomByGame(gamedata['id'])
+
+        if 'boxscore_statswnbacom' in files:
+            obj = player.PlayerStatsNbaCom(LOGDIR_EXTRACT + files['boxscore_statswnbacom'], gamedata, dbobj)
             obj.resolveNewPlayers()
 
             # Resolve with master player list
