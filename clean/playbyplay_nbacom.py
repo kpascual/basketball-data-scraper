@@ -7,7 +7,6 @@ import logging
 from bs4 import BeautifulSoup
 import find_player
 
-from config import db
 from config import constants 
 
 

@@ -5,7 +5,6 @@ import json
 import logging
 
 from config import config
-from config import db
 from config import constants 
 import player
 
@@ -201,7 +200,7 @@ class Clean:
 
             if 'min' in line.keys(): 
                 if line['min'] is not None:
-                    if type(line['min']) is str:
+                    if type(line['min']) is str or type(line['min']) is unicode:
                         minutes, seconds = line['min'].split(':')
                     elif type(line['min']) is int:
                         minutes = line['min']

@@ -5,7 +5,6 @@ import logging
 import csv
 import importlib
 
-from config import db
 from config import constants
 
 

@@ -9,7 +9,6 @@ import logging
 import find_player
 import resolve
 from config import config
-from config import db
 from config import constants 
 
 

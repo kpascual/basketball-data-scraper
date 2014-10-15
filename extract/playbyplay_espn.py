@@ -4,7 +4,6 @@ from bs4 import BeautifulSoup
 import csv
 import re
 import logging
-from config import db
 
 
 LOGDIR_EXTRACT = constants.LOGDIR_EXTRACT

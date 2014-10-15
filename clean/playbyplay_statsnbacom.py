@@ -7,7 +7,6 @@ import logging
 import player
 
 from config import config
-from config import db
 from config import constants 
 
 

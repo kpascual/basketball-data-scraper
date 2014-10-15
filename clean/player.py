@@ -7,7 +7,6 @@ import datetime
 import difflib
 
 from config import config
-from config import db
 from config import constants 
 import utils
 

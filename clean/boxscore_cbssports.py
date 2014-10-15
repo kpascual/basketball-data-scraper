@@ -1,6 +1,5 @@
 import csv
 import logging
-from config import db
 from config import constants 
 import config.constants
 

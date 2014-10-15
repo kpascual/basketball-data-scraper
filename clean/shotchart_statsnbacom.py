@@ -5,7 +5,6 @@ import json
 import logging
 
 import find_player
-from config import db
 from config import constants 
 from config import config
 

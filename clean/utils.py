@@ -1,6 +1,3 @@
-from config import config
-from config import db
-from config import constants 
 
 
 class Utils:

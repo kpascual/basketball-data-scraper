@@ -6,7 +6,6 @@ import os
 import json
 
 
-from config import db
 from config import constants 
 
 
