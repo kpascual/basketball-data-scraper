@@ -47,9 +47,7 @@ class Extract:
 
     def _getData(self):
         self.soup = BeautifulSoup(self.html,'lxml')
-        #self.soup = BeautifulSoup(self.html)
         
-        #table = self.soup.find(attrs={'class':re.compile('.*mod-data.*')})
         table = self.soup.find(class_=re.compile('.*mod-data.*'))
         if table:
             rows = table.find_all('tr')
@@ -71,7 +69,6 @@ class Extract:
             match = re.search('((?P<startorend>(Start|End)))\s+of\s+the\s+(?P<quarter>[0-9])(st|nd|rd|th)\s+(?P<period>(Quarter|Overtime))',cell2)
             if match:
                 period_name = '%s %s' % (match.group('quarter'), match.group('period'))
-                #period_number = constants.PERIODS.index(period_name)
                 period_number = constants.PERIODS[period_name]
 
                 # This variable will be either 'start' or 'end'
@@ -129,7 +126,6 @@ class Extract:
             match = re.search('.*(?P<num>\d)(st|nd|rd|th)\s+(?P<period_type>(Quarter|Overtime))\s+Summary.*',row)
             if match:
                 period_name = "%s %s" % (match.group('num'), match.group('period_type'))
-                #period_number = constants.PERIODS.index(period_name)
                 period_number = constants.PERIODS[period_name]
                 periods.append((period_number, play_number, period_name))
 
