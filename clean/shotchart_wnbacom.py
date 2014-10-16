@@ -3,7 +3,6 @@ import os
 import datetime
 import json
 import logging
-from config import db
 from config import constants 
 from config import config
 

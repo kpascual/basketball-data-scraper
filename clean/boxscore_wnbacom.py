@@ -7,7 +7,6 @@ import json
 
 import boxscore_nbacom
 
-from config import db
 from config import constants 
 
 

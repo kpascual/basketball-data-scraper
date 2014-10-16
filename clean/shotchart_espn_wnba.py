@@ -6,7 +6,6 @@ import datetime
 import re
 import difflib
 import json
-from config import db
 from config import constants 
 
 import shotchart_espn

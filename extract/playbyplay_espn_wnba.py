@@ -1,10 +1,8 @@
 from config import constants
 from bs4 import BeautifulSoup
-#from BeautifulSoup import BeautifulSoup
 import csv
 import re
 import logging
-from config import db
 
 import playbyplay_espn
 
