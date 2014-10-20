@@ -35,14 +35,16 @@ class Db:
     def insert_or_update(self, table_name, data):
         for line in data:
             headers = [key for key,val in sorted(line.items())]
-            quoted_values = ['"%s"' % (val) for key,val in sorted(line.items())]
-            duplicate_key_clauses = ['%s="%s"' % (key,val) for key,val in sorted(line.items())]
+            
+            quoted_values = ['"%s"' % (val.replace('"','\\"') if type(val) is str else val) for key,val in sorted(line.items())]
+            duplicate_key_clauses = ['%s="%s"' % (key, val.replace('"','\\"') if type(val) is str else val) for key,val in sorted(line.items())]
 
-            self.query("""
+            sql = """
                 INSERT INTO %s
                 (%s)
                 VALUES (%s)
                 ON DUPLICATE KEY UPDATE
                 %s
-            """ % (table_name, ','.join(headers), ','.join(quoted_values),','.join(duplicate_key_clauses)))
+            """ % (table_name, ','.join(headers), ','.join(quoted_values),','.join(duplicate_key_clauses))
+            self.query(sql)
 

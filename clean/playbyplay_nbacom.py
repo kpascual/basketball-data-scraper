@@ -5,6 +5,7 @@ import json
 import logging
 
 from bs4 import BeautifulSoup
+from bs4 import CData
 import find_player
 
 from config import constants 
@@ -50,7 +51,7 @@ class Clean:
         cleaned_plays = []
         for i,play in enumerate(playbyplaydata):
             playdata = dict(play.attrs)
-            playdata['play_desc'] = play.contents[0].replace('&lt;![CDATA','').replace(']]&gt;','')
+            playdata['play_desc'] = play.contents[0]
             playdata['deciseconds_left'] = self._transformTimeToTenthSeconds(playdata['game_clock'])
 
             # Re-key scores
@@ -164,8 +165,7 @@ class Clean:
             SELECT id, nickname, alternate_nickname, alternate_nickname2 
             FROM team 
             WHERE id IN (%s,%s)
-                AND season = '%s'
-        """ % (self.game['home_team_id'],self.game['away_team_id'], self.game['season']))
+        """ % (self.game['home_team_id'],self.game['away_team_id']))
     
         data = []
         for team in teams:

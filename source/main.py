@@ -25,6 +25,7 @@ def saveToFile(filename, body):
     f.close()
 
 def getSourceDoc(url):
+    print "    + %s" % (url)
     response = urllib2.urlopen(url)
     return response.read()
 
@@ -40,7 +41,6 @@ def func_shotchart_cbssports(game):
 
 def func_playbyplay_nbacom(game):
     url = constants.URL['playbyplay_nbacom'].replace('<game_id>',str(game['nbacom_game_id']))
-    print '   + %s' % (url)
     return getSourceDoc(url) 
 
 
@@ -101,14 +101,15 @@ def getAndSaveFiles(game, files):
     for f in files:
         filename = '%s_%s' % (game['abbrev'],f)
         if not _doesFileExist(filename):
+            print "  + %s" % (f)
             body = globals()["func_" + f](game)
             if body is not False:
                 saveToFile(filename, body)
-                print '  + %s saved ' % (f)
+                print "    + saved"
             else:
-                print '  + %s passed' % (f)
+                print "    + passed"
         else:
-            print '  + %s found. Skipping.' % (f)
+            print "  + %s found. Skipping." % (f)
         filenames[f] = filename
 
     return filenames
