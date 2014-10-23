@@ -20,112 +20,28 @@ LOGDIR_EXTRACT = constants.LOGDIR_EXTRACT
 logging.basicConfig(filename='etl.log',level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-class Scrape:
-    def __init__(self, dbobj, league):
-        league_map = {
-            'nba': 1,
-            'wnba': 2,
-            'fiba': 3
-        }
-        self.league = league
-        self.league_season_id = self._getLeagueSeason({league_id: league_map[league]})
 
 
-    def _scrape(self):
-        pass
+def getParamsAutoCurrent():
+    files = []
+    league_name = False
+    try:
+        league_name = sys.argv[1]
+        dt = sys.argv[2]
+        dt = datetime.date(*map(int,dt.split('-')))
+
+        if len(sys.argv) > 3:
+            files = sys.argv[3:]
+    except:
+        dt = datetime.date.today() - datetime.timedelta(days=1)
+
+    league_id = configg.dbobj.query_dict("SELECT id FROM league WHERE name = '%s'" % (league_name))[0]['id']
+
+    args = {'dbobj': configg.dbobj, 'league_id': league_id, 'start_date': dt, 'end_date': dt, 'files': files}
+    return args
 
 
-    def run(self):
-        pass
-
-    def _getLeagueSeason(self, params):
-        pass
-
-    def _getModules(self):
-        module_map = {
-            'nba': [
-                'boxscore_nbacom',
-                'boxscore_cbssports',
-                'playbyplay_espn',
-                'playbyplay_nbacom',
-                'shotchart_cbssports',
-                'shotchart_espn',
-                'shotchart_nbacom',
-                'playbyplay_statsnbacom',
-                'shotchart_statsnbacom',
-                'boxscore_statsnbacom'
-            ],
-            'wnba': [
-                'boxscore_nbacom',
-                'playbyplay_espn',
-                'playbyplay_nbacom',
-                'shotchart_espn',
-                'shotchart_wnbacom'
-            ]    
-            
-        }
-
-        return module_map(self.league)
-
-
-
-def scrapeAuto(league_name, dt, files = None):
-    step_time = time.time()
-
-    config_no_pw = configg.dbobj.getCredentials()
-    
-
-    # MAIN ETL PROCESS
-    print "+++ MASTER ETL - league: %s - database: %s" % (league_name, config_no_pw)
-    logging.info("MASTER - starting ETL job - league: %s - date: %s - database: %s" % (league_name, dt, config_no_pw))
-
-    args = {'dbobj': configg.dbobj, 'league_name': league_name, 'dt': dt, 'files': files}
-    scrape(**args)
-
-    time_elapsed = "Total time: %.2f sec" % (time.time() - step_time)
-    logging.info(time_elapsed)
-
-
-def scrape(dbobj, dt, files, league_name = '', league_id = 0, league_season_id = 0):
-
-    # Get league-level info from user-input
-    args = {'dbobj': dbobj, 'name': league_name, 'league_id': league_id, 'league_season_id': league_season_id}
-    lgobj = league.League(**args)
-
-    if not lgobj.obj or not lgobj.league_season:
-        print "Could not find league. Quitting."
-        return False
-    else:
-        print "+++ League identified: %s" % (str(lgobj.obj))
-        print "+++ League season identified: %s" % (str(lgobj.league_season))
-
-        # Choose games
-        games = lgobj.getGames(dt)
-        print "+++ %s games found" % (len(games))
-        if not files:
-            files = lgobj.getModules()
-
-        # Get source
-        gamedata = source.main.go(games, files)
-
-        # Scrape
-        extract.main.go(gamedata)
-        clean.main.go(gamedata, dbobj)
-        load.main.go(gamedata, dbobj)
-
-
-# League-specific methods
-
-def run(league = '', league_id = 0, league_season_id = 0, start_date = 0, end_date = 0, date = 0):
-    pass
-
-
-
-def backfill(league = '', league_id = 0, league_season_id = 0, start_date = 0, end_date = 0, date = 0):
-    pass
-
-
-def menu():
+def getParamsManual():
     # Choose league
     leagues = configg.dbobj.query_dict("SELECT * FROM league")
     print 'ID:   League Name'
@@ -154,34 +70,83 @@ def menu():
         else:
             end_date_input = datetime.datetime.strptime(end_date_input, '%Y-%m-%d').date()
 
+    return {'dbobj': configg.dbobj, 'league_id': league_input, 'league_season_id': league_season_input, 'files': [], 'start_date': start_date_input, 'end_date': end_date_input}
 
-    files = []
-    dt = start_date_input
-    while dt <= end_date_input:
-        args = {'dbobj': configg.dbobj, 'league_id': league_input, 'dt': dt, 'files': files, 'league_season_id': league_season_input}
+
+
+
+
+
+# League-specific methods
+
+def run(params):
+    step_time = time.time()
+
+    # Get league-level info from user-input
+    args = params.copy()
+    for arg in ['start_date', 'end_date', 'files']:
+        del args[arg]
+    lgobj = league.League(**args)
+
+    if not lgobj.obj or not lgobj.league_season:
+        print "Could not find league. Quitting."
+        return False
+    else:
+        dt = params['start_date']
+        while dt <= params['end_date']:
+
+            print "+++ MASTER ETL - league: %s" % (lgobj.name)
+            logging.info("MASTER - starting ETL job - league: %s - date: %s" % (lgobj.name, dt))
+
+            print "+++ League identified: %s" % (str(lgobj.obj))
+            print "+++ League season identified: %s" % (str(lgobj.league_season))
+
+            # Choose games
+            games = lgobj.getGames(dt)
+            print "+++ %s games found" % (len(games))
+            files = params['files']
+            if not files:
+                files = lgobj.getModules()
+
+            _scrape(params['dbobj'], games, files)
+
+            time_elapsed = "Total time: %.2f sec" % (time.time() - step_time)
+            logging.info(time_elapsed)
+
+            dt = dt + datetime.timedelta(days=1)
+
+
+def _scrape(dbobj, games, files):
+
+    # Get source
+    gamedata = source.main.go(games, files)
+
+    # Scrape
+    extract.main.go(gamedata)
+    clean.main.go(gamedata, dbobj)
+    load.main.go(gamedata, dbobj)
+
+
+def scrapeMenu(params):
+    dt = params['start_date']
+    while dt <= params['end_date']:
+        args = {'dbobj': configg.dbobj, 'league_id': params['league_id'], 'dt': dt, 'files': params['files'], 'league_season_id': params['league_season_id']}
         scrape(**args)
 
         dt = dt + datetime.timedelta(days=1)
 
 
+
+
+
 def main():
 
-    files = []
-    try:
-        league_name = sys.argv[1]
-        dt = sys.argv[2]
-        dt = datetime.date(*map(int,dt.split('-')))
-
-        if len(sys.argv) > 3:
-            files = sys.argv[3:]
-    except:
-        dt = datetime.date.today() - datetime.timedelta(days=1)
-
-    print dt
     if len(sys.argv) > 1:
-        scrapeAuto(league_name, dt, files)
+        params = getParamsAutoCurrent()
     else:
-        menu()
+        params = getParamsManual()
+
+    run(params)
 
 
 if __name__ == '__main__':
