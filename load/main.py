@@ -5,7 +5,7 @@ import logging
 import csv
 import importlib
 
-from config import constants
+from ..config import constants
 
 
 LOGDIR_LOAD = constants.LOGDIR_LOAD

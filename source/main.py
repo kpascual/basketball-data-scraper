@@ -4,19 +4,12 @@ import datetime
 import urllib2
 import os
 
-import db
-from config import constants
+from ..config import constants
 
 
 LOGDIR_SOURCE = constants.LOGDIR_SOURCE
 
 
-def chooseGames(date_played):
-    conn = MySQLdb.connect(**db.dbconn_nba)
-    curs = conn.cursor(MySQLdb.cursors.DictCursor)
-    
-    curs.execute("SELECT * FROM game WHERE date_played = '%s'" % (date_played))
-    return curs.fetchall()
 
 
 def saveToFile(filename, body):
@@ -125,20 +118,6 @@ def _doesFileExist(filename):
 
 def go(games, files):
     return [(gamedata, getAndSaveFiles(gamedata, files)) for gamedata in games]
-
-
-def main(dt = None):
-    
-    date_played = datetime.date.today() - datetime.timedelta(days=1)
-    if dt:
-        date_played = dt
-
-    games = chooseGames(date_played)
-    if games:
-        print '--- Found %s games for %s. Now parsing...' % (len(games),date_played) 
-
-        for game in games:
-            getAndSaveFiles(game)
 
 
 if __name__ == '__main__':

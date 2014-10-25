@@ -7,7 +7,7 @@ import logging
 import importlib
 
 
-from config import constants
+from ..config import constants
 
 LOGDIR_SOURCE = constants.LOGDIR_SOURCE
 LOGDIR_EXTRACT = constants.LOGDIR_EXTRACT

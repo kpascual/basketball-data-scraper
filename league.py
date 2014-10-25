@@ -8,8 +8,10 @@ class League:
         self.name = name
         if name:
             self.obj = self._getLeagueByName(name)
+            self.name = self.obj['name']
         elif league_id:
             self.obj = self._getLeagueById(league_id)
+            self.name = self.obj['name']
 
         if league_season_id:
             self.league_season = self._getLeagueSeason(league_season_id)

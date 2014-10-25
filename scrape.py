@@ -14,12 +14,7 @@ import clean.main
 import load.main
 
 
-LOGDIR_SOURCE = constants.LOGDIR_SOURCE
-LOGDIR_EXTRACT = constants.LOGDIR_EXTRACT
-
 logging.basicConfig(filename='etl.log',level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s')
-
-
 
 
 def getParamsAutoCurrent():
@@ -73,25 +68,23 @@ def getParamsManual():
     return {'dbobj': configg.dbobj, 'league_id': league_input, 'league_season_id': league_season_input, 'files': [], 'start_date': start_date_input, 'end_date': end_date_input}
 
 
-
-
-
-
-# League-specific methods
-
-def run(params):
-    step_time = time.time()
-
-    # Get league-level info from user-input
+def _verifyLeague(params):
     args = params.copy()
     for arg in ['start_date', 'end_date', 'files']:
         del args[arg]
     lgobj = league.League(**args)
-
     if not lgobj.obj or not lgobj.league_season:
-        print "Could not find league. Quitting."
         return False
     else:
+        return lgobj
+
+
+def run(params):
+    step_time = time.time()
+
+    lgobj = _verifyLeague(params)
+
+    if lgobj:
         dt = params['start_date']
         while dt <= params['end_date']:
 
@@ -105,8 +98,6 @@ def run(params):
             games = lgobj.getGames(dt)
             print "+++ %s games found" % (len(games))
             files = params['files']
-            if not files:
-                files = lgobj.getModules()
 
             _scrape(params['dbobj'], games, files)
 
@@ -114,6 +105,9 @@ def run(params):
             logging.info(time_elapsed)
 
             dt = dt + datetime.timedelta(days=1)
+
+    else:
+        print "Could not find league. Quitting."
 
 
 def _scrape(dbobj, games, files):
@@ -125,17 +119,6 @@ def _scrape(dbobj, games, files):
     extract.main.go(gamedata)
     clean.main.go(gamedata, dbobj)
     load.main.go(gamedata, dbobj)
-
-
-def scrapeMenu(params):
-    dt = params['start_date']
-    while dt <= params['end_date']:
-        args = {'dbobj': configg.dbobj, 'league_id': params['league_id'], 'dt': dt, 'files': params['files'], 'league_season_id': params['league_season_id']}
-        scrape(**args)
-
-        dt = dt + datetime.timedelta(days=1)
-
-
 
 
 

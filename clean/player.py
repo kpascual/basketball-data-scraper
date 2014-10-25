@@ -6,8 +6,7 @@ import logging
 import datetime
 import difflib
 
-from config import config
-from config import constants 
+from ..config import constants 
 import utils
 
 
@@ -428,16 +427,6 @@ def updatePlayerFullName(dbobj):
     """)
 
 
-def main():
-    dbobj = db.Db(config.dbconn_prod_nba)
-
-    gamedata = dbobj.query_dict("SELECT * FROM game WHERE id = 4766")[0]
-    filename = '%s_boxscore_statsnbacom' % (gamedata['abbrev'])
-
-    #obj = PlayerStatsNbaCom(filename, gamedata, dbobj)
-    #obj.resolveNewPlayers()
-    obj = Resolve(dbobj)
-    obj.resolveStatsNbacom()
 
 
 if __name__ == '__main__':
