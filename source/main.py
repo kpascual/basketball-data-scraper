@@ -4,7 +4,7 @@ import datetime
 import urllib2
 import os
 
-from ..config import constants
+from config import constants
 
 
 LOGDIR_SOURCE = constants.LOGDIR_SOURCE

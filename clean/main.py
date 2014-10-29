@@ -8,7 +8,7 @@ import importlib
 
 import player
 
-from ..config import constants
+from config import constants
 
 LOGDIR_CLEAN = constants.LOGDIR_CLEAN
 LOGDIR_EXTRACT = constants.LOGDIR_EXTRACT
