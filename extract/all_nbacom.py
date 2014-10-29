@@ -1,5 +1,4 @@
 from config import constants
-from BeautifulSoup import BeautifulStoneSoup
 import csv
 import re
 import shutil
