@@ -6,7 +6,7 @@ import logging
 import datetime
 import difflib
 
-from ..config import constants 
+from config import constants 
 import utils
 
 
