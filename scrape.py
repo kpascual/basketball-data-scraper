@@ -97,7 +97,10 @@ def run(params):
             # Choose games
             games = lgobj.getGames(dt)
             print "+++ %s games found" % (len(games))
-            files = params['files']
+            if not params['files']:
+                files = lgobj.getModules()
+            else: 
+                files = params['files']
 
             _scrape(params['dbobj'], games, files)
 
