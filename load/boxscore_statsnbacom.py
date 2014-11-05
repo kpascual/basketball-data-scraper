@@ -13,4 +13,7 @@ def run(filename, dbobj):
     stats_team = json.loads(open(LOGDIR_CLEAN + filename + '_game_stats_team', 'r').readline())
     dbobj.insert_or_update('game_stats_team_statsnbacom', stats_team)
 
+    stats_referee = json.loads(open(LOGDIR_CLEAN + filename + '_referee', 'r').readline())
+    dbobj.insert_or_update('referee_statsnbacom', stats_referee)
+
     return len(data)
