@@ -30,15 +30,13 @@ PYTHONPATH="/your_folder_path/basketball-data-scraper:$PYTHONPATH"
 export PYTHONPATH
 ```
 
-* Go to the libscrape/config
-* Copy constants_example.py to constants.py, and edit rows 3-8 in constants.py with the path containing this repo.
+* Go to the config/ folder
+* Copy config/constants_example.py to config/constants.py, and edit rows 3-8 in constants.py with the path containing this repo.
 
 ```
-cd libscrape/config
-cp constants_example.py constants.py
+cp config/constants_example.py config/constants.py
 ```
 
-* Go back to your root folder
 * Copy configg_example.py to configg.py
 
 ```
