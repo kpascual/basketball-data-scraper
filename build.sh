@@ -9,11 +9,18 @@ DATABASE=$3
 
 if [ -n "$USERNAME" -a -n "$PASSWORD" -a -n "$DATABASE" ]
 then
-    cp libscrape/config/constants_example.py libscrape/config/constants.py
-    sed -i.bak "s,/your_path_here,$PWD,g" libscrape/config/constants.py
-    sed -i.bak s/username_for_database/$USERNAME/g libscrape/config/config.py
-    sed -i.bak s/password_for_database/$PASSWORD/g libscrape/config/config.py
-    sed -i.bak s/production_database_name/$DATABASE/g libscrape/config/config.py
+    cp libscrape/config/constants_example.py config/constants.py
+
+    mkdir $PWD/dump
+    mkdir $PWD/dump/extract
+    mkdir $PWD/dump/source
+    mkdir $PWD/dump/clean
+    mkdir $PWD/dump/load
+
+    sed -i.bak "s,/your_path_here,$PWD,g" config/constants.py
+    sed -i.bak s/username_for_database/$USERNAME/g configg.py
+    sed -i.bak s/password_for_database/$PASSWORD/g configg.py
+    sed -i.bak s/production_database_name/$DATABASE/g configg.py
 
     mysql --user=$USERNAME --password=$PASSWORD -e "CREATE DATABASE IF NOT EXISTS $DATABASE"
     mysql --user=$USERNAME --password=$PASSWORD $DATABASE < schema/core_schema.sql

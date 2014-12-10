@@ -327,11 +327,12 @@ DROP TABLE IF EXISTS `player_team_history`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `player_team_history` (
-  `id` int(11) NOT NULL DEFAULT '0',
-  `player_id` int(11) DEFAULT NULL,
-  `team_id` int(11) DEFAULT NULL,
+  `player_id` int(11) NOT NULL DEFAULT '0',
+  `team_id` int(11) NOT NULL DEFAULT '0',
+  `league_season_id` int(11) DEFAULT NULL,
   `start_date` date DEFAULT NULL,
-  `end_date` date DEFAULT NULL
+  `end_date` date DEFAULT NULL,
+  PRIMARY KEY (`player_id`,`team_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `player_espn`;
@@ -378,6 +379,7 @@ CREATE TABLE `game` (
   `season_type` varchar(5) DEFAULT NULL,
   `should_fetch_data` tinyint(4) DEFAULT '1',
   `dim_season_id` int(11) DEFAULT NULL,
+  `league_season_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_abbrev` (`abbrev`),
   UNIQUE KEY `idx_permalink` (`permalink`),
@@ -414,6 +416,7 @@ CREATE TABLE `team` (
   `dim_season_id` int(11) DEFAULT NULL,
   `season` varchar(10) DEFAULT NULL,
   `season_type` varchar(5) DEFAULT NULL,
+  `league_season_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -519,6 +522,7 @@ CREATE TABLE `franchise` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `oldid` int(11) DEFAULT NULL,
   `code` varchar(3) NOT NULL DEFAULT '',
+  `name` varchar(50) DEFAULT NULL,
   `original_name` varchar(30) DEFAULT NULL,
   `original_city` varchar(30) DEFAULT NULL,
   `original_nickname` varchar(30) DEFAULT NULL,
@@ -560,6 +564,7 @@ CREATE TABLE `dim_play_type` (
   `has_player` tinyint(4) DEFAULT NULL,
   `has_player1` tinyint(4) DEFAULT NULL,
   `has_player2` tinyint(4) DEFAULT NULL,
+  `is_ambiguous` tinyint(4) DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -635,7 +640,6 @@ CREATE TABLE `playbyplay_statsnbacom` (
   `wctimestring` varchar(64) DEFAULT NULL,
   `pctimestring` varchar(64) DEFAULT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `idx_game_event` (`game_id`,`game_event_id`),
   KEY `idx_player_id` (`player_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -647,8 +651,8 @@ CREATE TABLE `play_type_statsnbacom` (
   `re` varchar(256) DEFAULT NULL,
   `name` varchar(256) DEFAULT NULL,
   `priority` int(11) DEFAULT NULL,
-  `is_shot` tinyint(4) DEFAULT '0',
-  `is_shot_made` tinyint(4) DEFAULT '0',
+  `is_shot` tinyint(4) DEFAULT NULL,
+  `is_shot_made` tinyint(4) DEFAULT NULL,
   `is_freethrow` tinyint(4) DEFAULT '0',
   `is_freethrow_made` tinyint(4) DEFAULT '0',
   `is_freethrow_last` tinyint(4) DEFAULT '0',
@@ -792,6 +796,31 @@ CREATE TABLE `player_statsnbacom` (
   `player_id` int(11) DEFAULT NULL,
   `team_id` int(11) DEFAULT NULL,
   PRIMARY KEY (`statsnbacom_player_id`,`game_id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `league`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `league` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL,
+  `slug` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `league_season`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `league_season` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `league_id` int(11) NOT NULL,
+  `season_id` int(11) NOT NULL,
+  `rule_set_id` int(11) DEFAULT NULL,
+  `is_current` tinyint(4) DEFAULT '0',
+  `status` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY `league_season_9c858b09` (`league_id`),
+  KEY `league_season_fa15d4a0` (`season_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
