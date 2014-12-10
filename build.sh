@@ -19,9 +19,9 @@ then
     mkdir $PWD/dump/load
 
     sed -i.bak "s,/your_path_here,$PWD,g" config/constants.py
-    sed -i.bak s/username_for_database/$USERNAME/g configg.py
-    sed -i.bak s/password_for_database/$PASSWORD/g configg.py
-    sed -i.bak s/production_database_name/$DATABASE/g configg.py
+    sed -i.bak s/username_here/$USERNAME/g configg.py
+    sed -i.bak s/password_here/$PASSWORD/g configg.py
+    sed -i.bak s/database_here/$DATABASE/g configg.py
 
     mysql --user=$USERNAME --password=$PASSWORD -e "CREATE DATABASE IF NOT EXISTS $DATABASE"
     mysql --user=$USERNAME --password=$PASSWORD $DATABASE < schema/core_schema.sql
