@@ -8,9 +8,10 @@ This library was created on a Mac, so the setup instructions are geared toward a
 
 * Python 2.5 or greater
 * MySQL
-* MySQLdb - Python's API to the MySQL database
+* BeautifulSoup4 (pip install beautifulsoup4)
+* lxml (used within BeautifulSoup) (pip install lxml)
+* MySQLdb - Python's API to the MySQL database (pip install MySQL-python)
 
-TODO: Add postgres, sqlite support
 
 ## Instructions
 
@@ -19,42 +20,41 @@ TODO: Add postgres, sqlite support
 
 ```
 cd your_folder_path
-git clone git@github.com:kpascual/nbascrape.git
+git clone git@github.com:kpascual/basketball-data-scraper.git
 ```
 
 * Add this new directory to your PYTHONPATH in ~/.bash_profile
 
 ```
-PYTHONPATH="/your_folder_path/nbascrape:$PYTHONPATH"
+PYTHONPATH="/your_folder_path/basketball-data-scraper:$PYTHONPATH"
 export PYTHONPATH
 ```
 
-* Go to the libscrape/config
-* Copy constants_example.py to constants.py, and edit rows 3-8 in constants.py with the path containing this repo.
+* Go to the config/ folder
+* Copy config/constants_example.py to config/constants.py, and edit rows 3-8 in constants.py with the path containing this repo.
 
 ```
-cd libscrape/config
-cp constants_example.py constants.py
+cp config/constants_example.py config/constants.py
 ```
 
-* Copy db_example.py to db.py
+* Copy configg_example.py to configg.py
 
 ```
-cp db_example.py db.py
+cp configg_example.py configg.py
 ```
 
-* In config.py, enter your MySQL database credentials
+* In configg.py, enter your MySQL database credentials
 ```
 vi db.py
 
-  4 dbconn_prod_nba = {
+  4 prod = {
   5     'user': 'username_for_database',
   6     'passwd': 'password__for_database',
   7     'db': 'production_database_name'
   8 }
 ```
 
-* Finally, load the database with the required tables and data
+* TODO: seed initial schema
 
 ```
 cd your_path_here/schema
@@ -63,10 +63,9 @@ mysql -u user_name -p database_name < core_data.sql
 mysql -u user_name -p database_name < game_data.sql
 ```
 
-To actually do scraping, run the master.py file within the libscrape directory, and enter the date (YYYY-MM-DD) of the games that you want to scrape.
+To actually do scraping, run the scrape.py file. You will be asked what league you want to run.
 
 ```
-cd your_path_here/libscrape
-python master.py 2012-10-30
+python scrape.py
 ```
 
