@@ -10,6 +10,7 @@ DATABASE=$3
 if [ -n "$USERNAME" -a -n "$PASSWORD" -a -n "$DATABASE" ]
 then
     cp config/constants_example.py config/constants.py
+    cp configg_example.py configg.py
 
     mkdir $PWD/dump
     mkdir $PWD/dump/extract
