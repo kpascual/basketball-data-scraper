@@ -9,7 +9,7 @@ DATABASE=$3
 
 if [ -n "$USERNAME" -a -n "$PASSWORD" -a -n "$DATABASE" ]
 then
-    cp libscrape/config/constants_example.py config/constants.py
+    cp config/constants_example.py config/constants.py
 
     mkdir $PWD/dump
     mkdir $PWD/dump/extract
