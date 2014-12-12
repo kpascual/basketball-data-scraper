@@ -88,7 +88,7 @@ def run(params):
         dt = params['start_date']
         while dt <= params['end_date']:
 
-            print "+++ MASTER ETL - league: %s" % (lgobj.name)
+            print "+++ MASTER ETL - league: %s, date: %s" % (lgobj.name, dt)
             logging.info("MASTER - starting ETL job - league: %s - date: %s" % (lgobj.name, dt))
 
             print "+++ League identified: %s" % (str(lgobj.obj))
