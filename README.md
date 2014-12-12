@@ -30,37 +30,11 @@ PYTHONPATH="/your_folder_path/basketball-data-scraper:$PYTHONPATH"
 export PYTHONPATH
 ```
 
-* Go to the config/ folder
-* Copy config/constants_example.py to config/constants.py, and edit rows 3-8 in constants.py with the path containing this repo.
+* Run the build.sh script with three parameters: 1) database username 2) database password 3) database name. This will set up the database and the config file for you.
+
 
 ```
-cp config/constants_example.py config/constants.py
-```
-
-* Copy configg_example.py to configg.py
-
-```
-cp configg_example.py configg.py
-```
-
-* In configg.py, enter your MySQL database credentials
-```
-vi db.py
-
-  4 prod = {
-  5     'user': 'username_for_database',
-  6     'passwd': 'password__for_database',
-  7     'db': 'production_database_name'
-  8 }
-```
-
-* TODO: seed initial schema
-
-```
-cd your_path_here/schema
-mysql -u user_name -p database_name < core_schema.sql
-mysql -u user_name -p database_name < core_data.sql
-mysql -u user_name -p database_name < game_data.sql
+sh build.sh database_username database_password database_name
 ```
 
 To actually do scraping, run the scrape.py file. You will be asked what league you want to run.
