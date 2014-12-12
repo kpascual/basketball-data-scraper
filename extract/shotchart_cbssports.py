@@ -4,7 +4,7 @@ import csv
 import datetime
 import sys
 import logging
-from BeautifulSoup import BeautifulSoup
+from bs4 import BeautifulSoup
 from config import constants
 
 
