@@ -70,13 +70,17 @@ class PlayerNbaCom:
 
             if nbacom_player_id:
                 data = {
-                    'nbacom_player_id':nbacom_player_id,'game_id':self.gamedata['id'],
-                    'player_tag':player_tag,'last_name':last_name,'first_name':first_name,
-                    'jersey_number':jersey_number,'team':team
+                    'nbacom_player_id':nbacom_player_id,
+                    'game_id':self.gamedata['id'],
+                    'player_tag':player_tag,
+                    'last_name':last_name,
+                    'first_name':first_name,
+                    'jersey_number':jersey_number,
+                    'team':team
                 }
                 self.db.insert_or_update('player_nbacom_by_game',[data])
 
-                result = self.db.query("SELECT * FROM player_nbacom WHERE nbacom_player_id = '%s'" % (nbacom_player_id))
+                result = self.db.query("SELECT * FROM player_nbacom WHERE nbacom_player_id = '%s' and player_tag = '%s'" % (nbacom_player_id, player_tag))
                 if not result:
                     print "cannot find %s.  inserting into db" % (row[2])
                     sql = """
@@ -84,6 +88,7 @@ class PlayerNbaCom:
                             (nbacom_player_id, player_tag, last_name, first_name, date_found) 
                         VALUES ("%s","%s","%s","%s","%s")
                     """ % (nbacom_player_id, player_tag, last_name, first_name, self.date_played)
+                    print sql
                     
                     self.db.query(sql)
 
@@ -97,8 +102,13 @@ class PlayerNbaCom:
                     logging.info("PLAYER - game_id: %s - Found new player in NBA.com files: %s" % (self.gamedata['id'], row[2]))
 
                 else:
-                    # we found a matching record, skip.
-                    pass
+                    # check if there exists a different nbacom_player tag. if so, unpack player_tag and add to list
+                    has_tag = self.db.query("SELECT * FROM player WHERE nbacom_player_id = '%s' AND (nbacom_player_tag LIKE '%%,%s%%' OR nbacom_player_tag LIKE '%s,%%' OR nbacom_player_tag = '%s')" % (nbacom_player_id, player_tag, player_tag, player_tag))
+                    if not has_tag:
+                        data = self.db.query_dict("SELECT * FROM player WHERE nbacom_player_id = '%s'" % (nbacom_player_id))[0]
+                        data['nbacom_player_tag'] = "%s,%s" % (data['nbacom_player_tag'], player_tag)
+                        print "  + Could not find player tag %s. Adding to db" % (player_tag)
+                        self.db.insert_or_update('player', [{'id': data['id'], 'nbacom_player_tag': data['nbacom_player_tag']}])
 
                 # Update player
                 self.db.query("""

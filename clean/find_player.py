@@ -10,7 +10,7 @@ class FindPlayer:
 
 
     def identifyPlayerByGame(self, player_tag, player_list, dt, game_id):
-        player_id = self._matchPlayerByTag(player_tag, game_id)
+        player_id = self._matchPlayerByNbacomTag(player_tag, game_id)
         #if player_id == 0:
         #    player_id = self.identifyPlayerByTag(player_tag, player_list, dt)
 
@@ -36,14 +36,16 @@ class FindPlayer:
 
 
 
-    def _matchPlayerByTag(self, player_tag, game_id):
+    def _matchPlayerByNbacomTag(self, player_tag, game_id):
         player_id = 0
         result = self.dbobj.query("""
             SELECT p.id as 'player_id'
             FROM player p 
             WHERE
-                nbacom_player_tag = '%s'
-        """ % (player_tag))
+                nbacom_player_tag LIKE '%s,%%'
+                OR nbacom_player_tag LIKE '%%%s,%%'
+                OR nbacom_player_tag = '%s'
+        """ % (player_tag, player_tag, player_tag))
 
         if result:
             player_id = result[0][0]
