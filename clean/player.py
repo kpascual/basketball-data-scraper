@@ -92,7 +92,7 @@ class PlayerNbaCom:
                     logging.info("PLAYER - game_id: %s - adding new player to resolved player table: %s" % (self.gamedata['id'], row[2]))
 
                 # Update player_tags
-                result = self.db.query("SELECT * FROM player_nbacom WHERE nbacom_player_id = '%s' AND nbacom_player_tag = '%s'" % (nbacom_player_id, player_tag))
+                result = self.db.query("SELECT * FROM player_nbacom WHERE nbacom_player_id = '%s' AND player_tag = '%s'" % (nbacom_player_id, player_tag))
                 if not result:
                     sql = """
                         INSERT INTO player_nbacom 
