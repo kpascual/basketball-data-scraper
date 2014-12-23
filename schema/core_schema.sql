@@ -236,7 +236,7 @@ CREATE TABLE `player` (
   `nbacom_player_id` varchar(20) DEFAULT NULL,
   `statsnbacom_player_id` int(11) DEFAULT NULL,
   `cbssports_player_id` int(11) DEFAULT NULL,
-  `nbacom_player_tag` varchar(50) DEFAULT NULL,
+  `nbacom_player_tag` varchar(200) DEFAULT NULL,
   `full_name` varchar(100) DEFAULT NULL,
   `first_name` varchar(50) DEFAULT NULL,
   `last_name` varchar(50) DEFAULT NULL,
@@ -273,13 +273,14 @@ DROP TABLE IF EXISTS `player_nbacom`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `player_nbacom` (
   `id` int(11) NOT NULL DEFAULT '0',
-  `nbacom_player_id` varchar(20) DEFAULT NULL,
-  `player_tag` varchar(50) DEFAULT NULL,
+  `nbacom_player_id` varchar(20) NOT NULL DEFAULT '',
+  `player_tag` varchar(50) NOT NULL DEFAULT '',
   `last_name` varchar(50) DEFAULT NULL,
   `first_name` varchar(50) DEFAULT NULL,
   `date_found` date DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `updated_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
+  `updated_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  PRIMARY KEY (`nbacom_player_id`,`player_tag`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `player_cbssports_by_game`;

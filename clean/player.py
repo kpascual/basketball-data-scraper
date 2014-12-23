@@ -88,7 +88,6 @@ class PlayerNbaCom:
                             (nbacom_player_id, player_tag, last_name, first_name, date_found) 
                         VALUES ("%s","%s","%s","%s","%s")
                     """ % (nbacom_player_id, player_tag, last_name, first_name, self.date_played)
-                    print sql
                     
                     self.db.query(sql)
 
