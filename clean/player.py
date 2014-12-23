@@ -80,33 +80,35 @@ class PlayerNbaCom:
                 }
                 self.db.insert_or_update('player_nbacom_by_game',[data])
 
-                result = self.db.query("SELECT * FROM player_nbacom WHERE nbacom_player_id = '%s' and player_tag = '%s'" % (nbacom_player_id, player_tag))
+                result = self.db.query("SELECT * FROM player_nbacom WHERE nbacom_player_id = '%s'" % (nbacom_player_id))
                 if not result:
-                    print "cannot find %s.  inserting into db" % (row[2])
-                    sql = """
-                        INSERT IGNORE INTO player_nbacom 
-                            (nbacom_player_id, player_tag, last_name, first_name, date_found) 
-                        VALUES ("%s","%s","%s","%s","%s")
-                    """ % (nbacom_player_id, player_tag, last_name, first_name, self.date_played)
-                    
-                    self.db.query(sql)
+                    print "  + PLAYER: cannot find %s.  inserting into db" % (row[2])
 
-                    # Add to resolved player table
                     result = self.db.query("""
                         INSERT IGNORE INTO player
                             (nbacom_player_id, nbacom_player_tag, last_name, first_name, full_name, date_found, position) 
                         VALUES ("%s","%s","%s","%s","%s","%s","U")
                     """ % (nbacom_player_id, player_tag, last_name, first_name, first_name + ' ' + last_name, self.date_played))
+                    logging.info("PLAYER - game_id: %s - adding new player to resolved player table: %s" % (self.gamedata['id'], row[2]))
 
-                    logging.info("PLAYER - game_id: %s - Found new player in NBA.com files: %s" % (self.gamedata['id'], row[2]))
-
+                # Update player_tags
+                result = self.db.query("SELECT * FROM player_nbacom WHERE nbacom_player_id = '%s' AND nbacom_player_tag = '%s'" % (nbacom_player_id, player_tag))
+                if not result:
+                    sql = """
+                        INSERT INTO player_nbacom 
+                            (nbacom_player_id, player_tag, last_name, first_name, date_found) 
+                        VALUES ("%s","%s","%s","%s","%s")
+                    """ % (nbacom_player_id, player_tag, last_name, first_name, self.date_played)
+                    
+                    self.db.query(sql)
+                    logging.info("PLAYER - game_id: %s - Found new player or tag in NBA.com files: %s" % (self.gamedata['id'], row[2]))
                 else:
                     # check if there exists a different nbacom_player tag. if so, unpack player_tag and add to list
                     has_tag = self.db.query("SELECT * FROM player WHERE nbacom_player_id = '%s' AND (nbacom_player_tag LIKE '%%,%s%%' OR nbacom_player_tag LIKE '%s,%%' OR nbacom_player_tag = '%s')" % (nbacom_player_id, player_tag, player_tag, player_tag))
                     if not has_tag:
                         data = self.db.query_dict("SELECT * FROM player WHERE nbacom_player_id = '%s'" % (nbacom_player_id))[0]
                         data['nbacom_player_tag'] = "%s,%s" % (data['nbacom_player_tag'], player_tag)
-                        print "  + Could not find player tag %s. Adding to db" % (player_tag)
+                        print "  + PLAYER: Could not find player tag %s. Adding to db" % (player_tag)
                         self.db.insert_or_update('player', [{'id': data['id'], 'nbacom_player_tag': data['nbacom_player_tag']}])
 
                 # Update player
@@ -255,13 +257,13 @@ class PlayerCbsSports:
                 result = self.db.query("SELECT * FROM player_cbssports WHERE cbssports_player_id = '%s'" % (cbssports_player_id))
 
                 if not result:
-                    print "cannot find.  inserting into db"
+                    print "  + cannot find CBS Sports player.  inserting into db"
                     self.db.query("""
                         INSERT INTO player_cbssports
                             (cbssports_player_id, full_name, first_name, last_name, date_found) 
                         VALUES ("%s","%s","%s","%s","%s")
                     """ % (cbssports_player_id, full_name, first_name, last_name, self.date_played))
-                    print "cannot find %s.  inserting into db" % (full_name)
+                    print "  + cannot find %s in CBS Sports.  inserting into db" % (full_name)
                     logging.debug("Found new player in CBSSports.com files: %s" % (full_name))
 
                 self.matchWithResolvedPlayer(cbssports_player_id, full_name, cbs_team_code, self.gamedata['id'])
@@ -301,7 +303,7 @@ class PlayerCbsSports:
                 """ % (cbssports_player_id, matched_nbacom_player_id))
             else:
                 logging.debug("PLAYER - game_id: %s - Could not match cbs sports player %s.  Skipping." % (game_id, full_name))
-                print "Could not match player %s, %s. Skipping" % (full_name, cbssports_player_id)
+                print "  + Could not match player %s, %s. Skipping" % (full_name, cbssports_player_id)
                 
             # Else, check by first name/last name, game_id
 
