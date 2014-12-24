@@ -43,7 +43,7 @@ class FindPlayer:
             FROM player p 
             WHERE
                 nbacom_player_tag LIKE '%s,%%'
-                OR nbacom_player_tag LIKE '%%%s,%%'
+                OR nbacom_player_tag LIKE '%%,%s%%'
                 OR nbacom_player_tag = '%s'
         """ % (player_tag, player_tag, player_tag))
 
