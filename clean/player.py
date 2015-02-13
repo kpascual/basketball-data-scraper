@@ -10,12 +10,12 @@ from config import constants
 import utils
 
 
-#logging.basicConfig(format='%(asctime)s %(message)s',filename='player.log',level=logging.DEBUG)
 # Script to resolve player differences between NBA.com, CBSSports.com, and ESPN.com sources
 # Use NBA.com and CBSSports first, because they're more well-defined
 
 
 # Take the new files provided, and look them up in the master player table
+# Add league limiter to all the things
 
 LOGDIR_CLEAN = constants.LOGDIR_CLEAN
 LOGDIR_EXTRACT = constants.LOGDIR_EXTRACT
@@ -227,80 +227,80 @@ class PlayerStatsNbaCom:
 
 
 class PlayerCbsSports: 
-    def __init__(self, filename, gamedata, dbobj):
+    def __init__(self, filename, gamedata, dbobj, lgobj):
         reader = csv.reader(open(filename,'r'),delimiter=',',lineterminator='\n')
 
         self.gamedata = gamedata
         self.data = [row for row in reader]
         self.date_played = self.gamedata['date_played']
-        self.db = dbobj
+        self.dbobj = dbobj
+        self.lgobj = lgobj
 
 
     def resolveNewPlayers(self):
+        game_id = self.gamedata['id']
         for row in self.data:
             cbssports_player_id = row[1]
-            full_name           = row[2].replace('&nbsp;',' ').strip()
-            first_name          = full_name.split(' ')[0]
-            last_name           = ' '.join(full_name.split(' ')[1:])
-            jersey_number       = row[3]
-            cbs_team_code       = row[0]
-            position            = row[4]
+            full_name = row[2].replace('&nbsp;',' ').strip()
+            team_id = row[0]
 
             if cbssports_player_id:
-                self.db.query("""
-                    INSERT INTO player_cbssports_by_game
-                    (game_id, cbssports_player_id, full_name, first_name, last_name, cbs_team_code, jersey_number, position)
-                    VALUES
-                    (%s,"%s", "%s", "%s", "%s", "%s", "%s", "%s")
-                """ % (self.gamedata['id'], cbssports_player_id, full_name, first_name, last_name, cbs_team_code, jersey_number, position))
+                insert_data = {
+                    'game_id'             : game_id,
+                    'cbssports_player_id' : cbssports_player_id,
+                    'full_name'           : full_name,
+                    'first_name'          : full_name.split(' ')[0],
+                    'last_name'           : ' '.join(full_name.split(' ')[1:]),
+                    'jersey_number'       : row[3],
+                    'team_id'             : row[0],
+                    'position'            : row[4]
+                }
+                self.dbobj.insert_or_update('player_cbssports_by_game', [insert_data])
 
-                result = self.db.query("SELECT * FROM player_cbssports WHERE cbssports_player_id = '%s'" % (cbssports_player_id))
+                result = self.dbobj.query("SELECT * FROM player_cbssports WHERE cbssports_player_id = '%s'" % (cbssports_player_id))
 
                 if not result:
                     print "  + cannot find CBS Sports player.  inserting into db"
-                    self.db.query("""
-                        INSERT INTO player_cbssports
-                            (cbssports_player_id, full_name, first_name, last_name, date_found) 
-                        VALUES ("%s","%s","%s","%s","%s")
-                    """ % (cbssports_player_id, full_name, first_name, last_name, self.date_played))
+                    insert_data = {
+                        'cbssports_player_id'   : cbssports_player_id,
+                        'full_name'             : full_name,
+                        'first_name'            : full_name.split(' ')[0],
+                        'last_name'             : ' '.join(full_name.split(' ')[1:]),
+                        'date_found'            : self.date_played
+                    }
+                    self.dbobj.insert_or_update('player_cbssports', [insert_data])
                     print "  + cannot find %s in CBS Sports.  inserting into db" % (full_name)
                     logging.debug("Found new player in CBSSports.com files: %s" % (full_name))
 
-                self.matchWithResolvedPlayer(cbssports_player_id, full_name, cbs_team_code, self.gamedata['id'])
+                self.matchWithResolvedPlayer(cbssports_player_id, full_name, team_id, self.gamedata['id'])
 
 
-    def matchWithResolvedPlayer(self, cbssports_player_id, full_name, cbs_team_code, game_id):
-        existing_player = self.db.query("""
-            SELECT * FROM player
+    def matchWithResolvedPlayer(self, cbssports_player_id, full_name, team_id, game_id):
+        existing_player = self.dbobj.query("""
+            SELECT * 
+            FROM player
             WHERE cbssports_player_id = %s
         """ % (cbssports_player_id))
+        # Must check: are cbssports_player_ids unique across leagues?
 
         if not existing_player:
-            team_codes = self.db.query("SELECT nbacom_code, code, id FROM team WHERE id = '%s'" % (cbs_team_code))[0]
-            nbacom_team_code = team_codes[0]
-            team_code = team_codes[1]
-            team_id = team_codes[2]
 
-            # Get list of possible matches from nba.com names
-            result = self.db.query("""
-                SELECT nbacom_player_id, first_name, last_name
-                FROM player_nbacom_by_game
-                WHERE game_id = '%s' AND team = '%s'
-            """ % (game_id, nbacom_team_code))
+            # Find a player resolution from prior games
+            prior = self.dbobj.query_dict("""
+                SELECT DISTINCT cbssports_player_id, player_id
+                FROM player_cbssports_by_game
+                WHERE 
+                    cbssports_player_id = %s
+            """ % (cbssports_player_id))
+            if prior and len(prior) == 1:
+                data = {
+                    'player_id': prior[0]['player_id'],
+                    'cbssports_player_id': cbssports_player_id,
+                    'game_id': game_id
+                }
+                player_id = prior[0]['player_id']  
+                self.dbobj.insert_or_update('player_cbssports_by_game', [data])
 
-            names = [' '.join(row[1:]) for row in result]
-            match = difflib.get_close_matches(full_name, names, 1, 0.8)
-
-            if match:
-                best_match = match[0]
-                matched_nbacom_player_id = result[names.index(best_match)][0]
-                
-                self.db.query("""
-                    UPDATE player
-                    SET cbssports_player_id = "%s"
-                    WHERE nbacom_player_id = "%s"
-                        AND cbssports_player_id IS NULL
-                """ % (cbssports_player_id, matched_nbacom_player_id))
             else:
                 logging.debug("PLAYER - game_id: %s - Could not match cbs sports player %s.  Skipping." % (game_id, full_name))
                 print "  + Could not match player %s, %s. Skipping" % (full_name, cbssports_player_id)

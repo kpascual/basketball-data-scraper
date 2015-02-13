@@ -53,6 +53,29 @@ class League:
         """ % (season))
 
 
+    def getPlayerResolveStrategy(self):
+        results = self.dbobj.query_dict("""
+            SELECT
+                *
+            FROM
+                league_scrape_player_resolution
+            WHERE
+                league_id = %s
+            ORDER BY
+                is_primary DESC
+        """ % (self.obj['id']))
+        
+        # flatten into primary/secondary
+        obj = {'primary': '', 'secondary': []}
+        for line in results:
+            if line['is_primary'] == 1:
+                obj['primary'] = line['source']
+            else:
+                obj['secondary'].append(line['source'])
+
+        return obj
+
+
     def matchTeam(self, team_name, teams):
         print team_name
         for team in teams:
@@ -78,7 +101,7 @@ class League:
 
 
     def _getLeagueByName(self, name):
-        query = self.dbobj.query_dict("SELECT * FROM league WHERE name = '%s'" % (name))
+        query = self.dbobj.query_dict("SELECT * FROM league WHERE slug = '%s'" % (name))
         if query:
             return query[0]
         else:
@@ -110,6 +133,8 @@ class League:
 
 
     def getModules(self):
+        data = self.dbobj.query_dict("SELECT * FROM league_season_scrape_module WHERE league_season_id = %s" % (self.league_season['id']))
+        return [line['module_name'] for line in data]
         module_map = {
             'nba': [
                 'boxscore_nbacom',

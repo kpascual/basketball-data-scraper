@@ -20,6 +20,7 @@ class FindGames:
 
     def __init__(self, league_season_id = False):
         self.league_season_id = league_season_id
+        self.dbobj = configg.dbobj
 
 
     def run(self, dt):
@@ -39,15 +40,16 @@ class FindGamesEspnNba(FindGames):
 
     def __init__(self, league_season_id = False):
         self.league_name = 'nba'
-        self.league_obj = league.League(dbobj, self.league_name)
+        self.league_abbrev = 'nba'
+        self.league_obj = league.League(configg.dbobj, self.league_name)
         FindGames.__init__(self, league_season_id)
         self._getRecentLeagueSeasonId(self.league_obj)
 
 
     def parse(self, dt):
         html_espn = self._getScoreboardDoc(dt)
-        data_espn = self._getData(html_espn)
-        data = self._translateEspnGameData(data_espn, dt)
+        game_info = self._getGameIds(html_espn)
+        data = self._translateEspnGameData(game_info, dt)
         return data
 
 
@@ -57,18 +59,23 @@ class FindGamesEspnNba(FindGames):
         return response.read()
 
 
-    def _getData(self, html):
+    def _getGameIds(self, html):
         soup = BeautifulSoup(html, 'lxml')
-        links = soup.findAll(href=re.compile("/%s/conversation.*" % (self.league_name)))
+        links = soup.findAll(href=re.compile("/%s/conversation.*" % (self.league_abbrev)))
+        print links
         
         game_ids = []
         for l in links:
-            match = re.search("/%s/conversation\?gameId=(?P<game_id>[0-9]+)$" % (self.league_name),l['href'])
+            match = re.search("/%s/conversation\?gameId=(?P<game_id>[0-9]+)$" % (self.league_abbrev),l['href'])
             
             if match:
                 found = match.groupdict()
                 game_ids.append(found['game_id'])
 
+        return self._matchTeams(game_ids, soup)
+
+
+    def _matchTeams(self, game_ids, soup):
         game_info = []
         for game_id in game_ids:
             
@@ -103,7 +110,7 @@ class FindGamesEspnNba(FindGames):
         final = []
         for g in game_data:
             g['date_played'] = dt
-            g['abbrev'] = '%s_%s@%s' % (dt, g['away_team'], g['home_team'])
+            g['abbrev'] = '%s_%s_%s@%s' % (dt, self.league_season_id, g['away_team'], g['home_team'])
             g['away_team_code'] = g['away_team']
             g['home_team_code'] = g['home_team']
             g['nbacom_game_id'] = '%s/%s%s' % (dt.isoformat().replace('-',''), g['away_team_nbacom'], g['home_team_nbacom'])
@@ -137,7 +144,8 @@ class FindGamesEspnWnba(FindGamesEspnNba):
 
     def __init__(self, league_season_id = False):
         self.league_name = 'wnba'
-        self.league_obj = league.League(dbobj, self.league_name)
+        self.league_abbrev = 'wnba'
+        self.league_obj = league.League(configg.dbobj, self.league_name)
         FindGames.__init__(self, league_season_id)
         self._getRecentLeagueSeasonId(self.league_obj)
 
@@ -147,12 +155,99 @@ class FindGamesEspnWnba(FindGamesEspnNba):
         return response.read()
 
 
+class FindGamesEspnNcaaM(FindGamesEspnNba):
+
+    def __init__(self, league_season_id = False):
+        self.league_name = 'ncaam'
+        self.league_abbrev = 'ncb'
+        self.league_obj = league.League(configg.dbobj, self.league_name)
+        FindGames.__init__(self, league_season_id)
+        self._getRecentLeagueSeasonId(self.league_obj)
+
+    def _getScoreboardDoc(self, dt):
+        url = 'http://espn.go.com/ncb/scoreboard?date=<date>&confId=50'
+        response = urllib2.urlopen(url.replace('<date>', dt.isoformat().replace('-', '')))
+        return response.read()
+
+
+    def _matchTeams(self, game_ids, soup):
+        game_info = []
+        for game_id in game_ids:
+            
+            try:
+                away_team_id = 0
+                team_div = soup.find(id='%s-aNameOffset' % game_id)
+                if team_div and hasattr(team_div, 'a'):
+                    url = team_div.a['href']
+                    espn_team_id = 0
+                    match = re.match('http://espn.go.com/mens-college-basketball/team/_/id/(?P<espn_team_id>\d+)/.*', url)
+                    if match:
+                        espn_team_id = match.groupdict()['espn_team_id']
+                    away_team_id, away_team_name, away_team_nickname = self._findTeamByEspnId(espn_team_id)
+
+                home_team_id = 0
+                team_div = soup.find(id='%s-hNameOffset' % game_id)
+                if team_div and hasattr(team_div, 'a'):
+                    url = team_div.a['href']
+                    espn_team_id = 0
+                    match = re.match('http://espn.go.com/mens-college-basketball/team/_/id/(?P<espn_team_id>\d+)/.*', url)
+                    if match:
+                        espn_team_id = match.groupdict()['espn_team_id']
+                    home_team_id, home_team_name, home_team_nickname = self._findTeamByEspnId(espn_team_id)
+
+
+                game_info.append(
+                    {
+                        'espn_game_id':game_id, 
+                        'away_team_name': away_team_name, 
+                        'home_team_name': home_team_name, 
+                        'away_team_id': away_team_id, 
+                        'home_team_id': home_team_id, 
+                        'away_team_nickname': away_team_nickname, 
+                        'home_team_nickname': home_team_nickname
+                    }
+                )
+            except Exception as e:
+                print "Team not found. Skipping."
+                print e
+
+        return game_info
+
+
+    def _findTeamByEspnId(self, espn_team_id):
+        data = self.dbobj.query_dict("SELECT * FROM team WHERE espn_team_id = %s AND league_season_id = %s" % (espn_team_id, self.league_season_id))
+        print data
+        if data:
+            return (data[0]['id'], data[0]['name'], data[0]['nickname'])
+
+        return (0,'unk','unknown') 
+
+
+    def _translateEspnGameData(self, game_data, dt):
+
+        final = []
+        for g in game_data:
+            g['date_played'] = dt
+            g['abbrev'] = '%s_%s_%s@%s' % (dt, self.league_season_id, g['away_team_name'], g['home_team_name'])
+            g['permalink'] = g['away_team_name'] + '-at-' + g['home_team_name'] + '-' + dt.strftime("%B-%d-%Y")
+            g['permalink'] = g['permalink'].replace('-0','-').lower()
+            g['league_season_id'] = self.league_season_id
+            final.append(g)
+
+            del g['away_team_nickname']
+            del g['home_team_nickname']
+            del g['away_team_name']
+            del g['home_team_name']
+
+        return final
+
+
 
 class FindGamesStatsNbaCom(FindGames):
 
     def __init__(self, league_season_id = False):
         self.league_name = 'nba'
-        self.league_obj = league.League(dbobj, self.league_name)
+        self.league_obj = league.League(configg.dbobj, self.league_name)
         FindGames.__init__(self, league_season_id)
         self._getRecentLeagueSeasonId(self.league_obj)
 
@@ -227,6 +322,7 @@ def getDay(league_id, league_season_id, date):
     league_map = {
         1: [FindGamesEspnNba, FindGamesStatsNbaCom], # NBA
         2: [FindGamesEspnWnba], # WNBA
+        4: [FindGamesEspnNcaaM], # NCAA Men
     }
 
 

@@ -288,8 +288,10 @@ DROP TABLE IF EXISTS `player_cbssports_by_game`;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `player_cbssports_by_game` (
   `id` int(11) NOT NULL DEFAULT '0',
-  `game_id` int(11) DEFAULT NULL,
-  `cbssports_player_id` int(11) DEFAULT NULL,
+  `game_id` int(11) NOT NULL DEFAULT '0',
+  `cbssports_player_id` int(11) NOT NULL DEFAULT '0',
+  `player_id` int(11) DEFAULT NULL,
+  `team_id` int(11) DEFAULT NULL,
   `full_name` varchar(100) DEFAULT NULL,
   `first_name` varchar(50) DEFAULT NULL,
   `last_name` varchar(50) DEFAULT NULL,
@@ -298,6 +300,7 @@ CREATE TABLE `player_cbssports_by_game` (
   `position` varchar(5) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   `updated_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
+  PRIMARY KEY (`game_id`,`cbssports_player_id`),
   KEY `idx_cbssports_player_id` (`cbssports_player_id`),
   KEY `idx_game_id` (`game_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
@@ -368,15 +371,15 @@ CREATE TABLE `game` (
   `away_team_code` varchar(3) DEFAULT NULL,
   `home_team_code` varchar(3) DEFAULT NULL,
   `date_played` date NOT NULL,
-  `abbrev` varchar(20) NOT NULL,
+  `abbrev` varchar(128) DEFAULT NULL,
   `espn_game_id` int(11) DEFAULT NULL,
-  `cbssports_game_id` varchar(20) DEFAULT NULL,
+  `cbssports_game_id` varchar(64) DEFAULT NULL,
   `nbacom_game_id` varchar(15) DEFAULT NULL,
   `statsnbacom_game_id` varchar(16) DEFAULT NULL,
   `gametime` varchar(20) DEFAULT NULL,
   `national_tv` varchar(20) DEFAULT NULL,
   `season` varchar(10) DEFAULT NULL,
-  `permalink` varchar(100) DEFAULT NULL,
+  `permalink` varchar(128) DEFAULT NULL,
   `season_type` varchar(5) DEFAULT NULL,
   `should_fetch_data` tinyint(4) DEFAULT '1',
   `dim_season_id` int(11) DEFAULT NULL,
@@ -384,6 +387,7 @@ CREATE TABLE `game` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_abbrev` (`abbrev`),
   UNIQUE KEY `idx_permalink` (`permalink`),
+  UNIQUE KEY `idx_away_home_date` (`away_team_id`,`home_team_id`,`date_played`),
   KEY `idx_away_team_id` (`away_team_id`),
   KEY `idx_home_team_id` (`home_team_id`),
   KEY `idx_date_played` (`date_played`)
@@ -397,13 +401,14 @@ CREATE TABLE `team` (
   `oldid` int(11) DEFAULT NULL,
   `franchise_id` int(11) NOT NULL,
   `code` varchar(3) NOT NULL DEFAULT '',
-  `name` varchar(30) NOT NULL,
+  `name` varchar(64) DEFAULT NULL,
   `city` varchar(30) NOT NULL,
-  `nickname` varchar(30) NOT NULL,
-  `alternate_nickname` varchar(30) NOT NULL,
+  `nickname` varchar(64) DEFAULT NULL,
+  `alternate_nickname` varchar(64) DEFAULT NULL,
   `nbacom_code` char(3) DEFAULT NULL,
-  `cbssports_code` varchar(3) DEFAULT NULL,
+  `cbssports_code` varchar(16) DEFAULT NULL,
   `statsnbacom_team_id` int(11) DEFAULT NULL,
+  `espn_team_id` int(11) DEFAULT NULL,
   `color1` varchar(7) DEFAULT NULL,
   `color2` varchar(7) DEFAULT NULL,
   `unique_name` varchar(40) DEFAULT NULL,
@@ -481,7 +486,6 @@ CREATE TABLE `play_type_nbacom` (
   `is_assist` tinyint(4) DEFAULT '0',
   `is_steal` tinyint(4) DEFAULT '0',
   `is_violation` tinyint(4) DEFAULT '0',
-  `is_technical` tinyint(4) DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -566,6 +570,7 @@ CREATE TABLE `dim_play_type` (
   `has_player1` tinyint(4) DEFAULT NULL,
   `has_player2` tinyint(4) DEFAULT NULL,
   `is_ambiguous` tinyint(4) DEFAULT '0',
+  `is_possession_change` tinyint(4) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -832,7 +837,7 @@ CREATE TABLE `league_season` (
   `season_id` int(11) NOT NULL,
   `rule_set_id` int(11) DEFAULT NULL,
   `is_current` tinyint(4) DEFAULT '0',
-  `status` int(11) DEFAULT NULL,
+  `status` tinyint(4) DEFAULT '-1',
   PRIMARY KEY (`id`),
   KEY `league_season_9c858b09` (`league_id`),
   KEY `league_season_fa15d4a0` (`season_id`)
@@ -846,6 +851,26 @@ CREATE TABLE `season` (
   `name` varchar(50) NOT NULL,
   `slug` varchar(50) NOT NULL,
   PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `league_season_scrape_module`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `league_season_scrape_module` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `league_season_id` int(11) DEFAULT NULL,
+  `module_name` varchar(64) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uc_league_season_module` (`league_season_id`,`module_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `player_by_game`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `player_by_game` (
+  `player_id` int(11) NOT NULL DEFAULT '0',
+  `game_id` int(11) NOT NULL DEFAULT '0',
+  PRIMARY KEY (`player_id`,`game_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;

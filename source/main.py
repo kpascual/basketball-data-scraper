@@ -83,8 +83,12 @@ def func_playbyplay_wnbacom(game):
 def func_shotchart_espn_wnba(game):
     return getSourceDoc(constants.URL['shotchart_espn_wnba'].replace('<game_id>',str(game['espn_game_id']))) 
 
+def func_playbyplay_espn_ncaam(game):
+    return getSourceDoc(constants.URL['playbyplay_espn_ncaam'].replace('<game_id>',str(game['espn_game_id']))) 
 
 
+def func_shotchart_cbssports_ncaam(game):
+    return getSourceDoc(constants.URL['shotchart_cbssports_ncaam'].replace('<game_id>',str(game['cbssports_game_id']))) 
 
 def getAndSaveFiles(game, files):
 

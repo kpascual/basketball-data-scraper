@@ -95,7 +95,7 @@ class FindPlayer:
         players = self.dbobj.query_dict("""
             SELECT p.id as 'player_id', p.full_name, p.full_name_alt1, p.full_name_alt2 
             FROM player p
-                INNER JOIN player_nbacom_by_game g ON g.nbacom_player_id = p.nbacom_player_id
+                INNER JOIN player_by_game g ON g.player_id = p.id
             WHERE g.game_id = %s
         """ % (game_id))
         return self._transformPlayersToTuples(players)

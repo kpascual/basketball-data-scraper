@@ -31,6 +31,7 @@ def getParamsAutoCurrent():
         dt = datetime.date.today() - datetime.timedelta(days=1)
 
     league_id = configg.dbobj.query_dict("SELECT id FROM league WHERE name = '%s'" % (league_name))[0]['id']
+    print "+++ Database name: %s" % (str(configg.db_params['db']))
 
     args = {'dbobj': configg.dbobj, 'league_id': league_id, 'start_date': dt, 'end_date': dt, 'files': files}
     return args
@@ -65,6 +66,7 @@ def getParamsManual():
         else:
             end_date_input = datetime.datetime.strptime(end_date_input, '%Y-%m-%d').date()
 
+    print "+++ Database name: %s" % (str(configg.db_params['db']))
     return {'dbobj': configg.dbobj, 'league_id': league_input, 'league_season_id': league_season_input, 'files': [], 'start_date': start_date_input, 'end_date': end_date_input}
 
 
@@ -102,7 +104,7 @@ def run(params):
             else: 
                 files = params['files']
 
-            _scrape(params['dbobj'], games, files)
+            _scrape(params['dbobj'], games, files, lgobj)
 
             time_elapsed = "Total time: %.2f sec" % (time.time() - step_time)
             logging.info(time_elapsed)
@@ -113,14 +115,14 @@ def run(params):
         print "Could not find league. Quitting."
 
 
-def _scrape(dbobj, games, files):
+def _scrape(dbobj, games, files, lgobj):
 
     # Get source
     gamedata = source.main.go(games, files)
 
     # Scrape
     extract.main.go(gamedata)
-    clean.main.go(gamedata, dbobj)
+    clean.main.go(gamedata, dbobj, lgobj)
     load.main.go(gamedata, dbobj)
 
 

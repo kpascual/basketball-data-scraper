@@ -216,7 +216,7 @@ class Clean:
 
 
     def _getKnownPlays(self):
-        return self.db.query("SELECT id,re,name FROM play_espn ORDER BY priority ASC, id ASC")
+        return self.db.query("SELECT id, re, name FROM play_espn ORDER BY priority ASC, id ASC")
 
 
     def _findPlay(self, play):
