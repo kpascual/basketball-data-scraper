@@ -1,6 +1,6 @@
 import db
 
-prod = {
+db_params = {
     'user': 'username_here',
     'passwd': 'password_here',
     'db': 'database_here'
