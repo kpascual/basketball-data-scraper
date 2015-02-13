@@ -8,7 +8,7 @@ db_params = {
 
 
 # Database credential for main ETL run
-dbobj = db.Db(prod)
+dbobj = db.Db(db_params)
 
 # Current season and season type
 config = {}
