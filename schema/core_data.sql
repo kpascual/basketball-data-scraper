@@ -57,6 +57,12 @@ LOCK TABLES `league_season_scrape_module` WRITE;
 INSERT INTO `league_season_scrape_module` VALUES (1,5,'boxscore_cbssports'),(2,5,'boxscore_nbacom'),(10,5,'boxscore_statsnbacom'),(3,5,'playbyplay_espn'),(4,5,'playbyplay_nbacom'),(8,5,'playbyplay_statsnbacom'),(5,5,'shotchart_cbssports'),(6,5,'shotchart_espn'),(7,5,'shotchart_nbacom'),(9,5,'shotchart_statsnbacom'),(11,7,'boxscore_wnbacom'),(12,7,'playbyplay_espn_wnba'),(13,7,'playbyplay_wnbacom'),(14,7,'shotchart_espn_wnba'),(15,7,'shotchart_wnbacom'),(16,9,'playbyplay_espn_ncaam'),(17,9,'shotchart_cbssports_ncaam');
 /*!40000 ALTER TABLE `league_season_scrape_module` ENABLE KEYS */;
 UNLOCK TABLES;
+
+LOCK TABLES `league_scrape_player_resolution` WRITE;
+/*!40000 ALTER TABLE `league_scrape_player_resolution` DISABLE KEYS */;
+INSERT INTO `league_scrape_player_resolution` VALUES (4,'shotchart_cbssports_ncaam',1),(4,'playbyplay_espn',0),(1,'boxscore_nbacom',1),(2,'boxscore_wnbacom',1);
+/*!40000 ALTER TABLE `league_scrape_player_resolution` ENABLE KEYS */;
+UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
