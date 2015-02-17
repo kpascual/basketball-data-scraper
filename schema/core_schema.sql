@@ -545,15 +545,15 @@ CREATE TABLE `dim_play_type` (
   `id` int(11) NOT NULL,
   `name` varchar(1000) NOT NULL,
   `is_shot` tinyint(4) DEFAULT '0',
-  `is_shot_made` tinyint(4) DEFAULT NULL,
-  `is_3pt` tinyint(4) DEFAULT NULL,
-  `is_3pt_made` tinyint(4) DEFAULT NULL,
+  `is_shot_made` tinyint(4) DEFAULT '0',
+  `is_3pt` tinyint(4) DEFAULT '0',
+  `is_3pt_made` tinyint(4) DEFAULT '0',
   `is_freethrow` tinyint(4) DEFAULT '0',
-  `is_freethrow_made` tinyint(4) DEFAULT NULL,
+  `is_freethrow_made` tinyint(4) DEFAULT '0',
   `is_freethrow_last` tinyint(4) DEFAULT '0',
   `is_rebound` tinyint(4) DEFAULT '0',
-  `is_offensive_rebound` tinyint(4) DEFAULT NULL,
-  `is_defensive_rebound` tinyint(4) DEFAULT NULL,
+  `is_offensive_rebound` tinyint(4) DEFAULT '0',
+  `is_defensive_rebound` tinyint(4) DEFAULT '0',
   `is_foul` tinyint(4) DEFAULT '0',
   `is_turnover` tinyint(4) DEFAULT '0',
   `is_assist` tinyint(4) DEFAULT '0',
@@ -561,16 +561,16 @@ CREATE TABLE `dim_play_type` (
   `is_block` tinyint(4) DEFAULT '0',
   `is_technical` tinyint(4) DEFAULT '0',
   `is_violation` tinyint(4) DEFAULT '0',
-  `is_timeout` tinyint(4) DEFAULT NULL,
-  `is_on_floor` tinyint(4) DEFAULT NULL,
-  `is_team_play` tinyint(4) DEFAULT NULL,
-  `points_possible` tinyint(4) DEFAULT NULL,
-  `points_converted` tinyint(4) DEFAULT NULL,
-  `has_player` tinyint(4) DEFAULT NULL,
-  `has_player1` tinyint(4) DEFAULT NULL,
-  `has_player2` tinyint(4) DEFAULT NULL,
+  `is_timeout` tinyint(4) DEFAULT '0',
+  `is_on_floor` tinyint(4) DEFAULT '0',
+  `is_team_play` tinyint(4) DEFAULT '0',
+  `points_possible` tinyint(4) DEFAULT '0',
+  `points_converted` tinyint(4) DEFAULT '0',
+  `has_player` tinyint(4) DEFAULT '0',
+  `has_player1` tinyint(4) DEFAULT '0',
+  `has_player2` tinyint(4) DEFAULT '0',
   `is_ambiguous` tinyint(4) DEFAULT '0',
-  `is_possession_change` tinyint(4) DEFAULT NULL,
+  `is_possession_change` tinyint(4) DEFAULT '0',
   PRIMARY KEY (`id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -870,8 +870,25 @@ DROP TABLE IF EXISTS `player_by_game`;
 CREATE TABLE `player_by_game` (
   `player_id` int(11) NOT NULL DEFAULT '0',
   `game_id` int(11) NOT NULL DEFAULT '0',
+  `jersey_number` int(11) DEFAULT NULL,
+  `position` varchar(5) DEFAULT NULL,
   PRIMARY KEY (`player_id`,`game_id`)
 ) ENGINE=MyISAM DEFAULT CHARSET=latin1;
+/*!40101 SET character_set_client = @saved_cs_client */;
+DROP TABLE IF EXISTS `rule_set`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `rule_set` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `regulation_length_seconds` int(11) DEFAULT NULL,
+  `period_count` int(11) DEFAULT NULL,
+  `period_length_seconds` int(11) DEFAULT NULL,
+  `overtime_period_length_seconds` int(11) DEFAULT NULL,
+  `three_point_max_distance` float DEFAULT NULL,
+  `three_point_corner_distance` float DEFAULT NULL,
+  `court_elements` text,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `league_scrape_player_resolution`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
