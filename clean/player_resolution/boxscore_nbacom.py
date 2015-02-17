@@ -75,7 +75,7 @@ class PlayerNbaCom:
                     logging.info("PLAYER - game_id: %s - adding new player to resolved player table: %s" % (self.gamedata['id'], row[2]))
 
                     player_id = self.db.query_dict("SELECT id FROM player WHERE nbacom_player_id = '%s'" % (nbacom_player_id))[0]['id']
-                    self.db.insert_or_update('player_by_game', [{'player_id': player_id, 'game_id': self.gamedata['id']}])
+                    self.db.insert_or_update('player_by_game', [{'player_id': player_id, 'game_id': self.gamedata['id'], 'jersey_number': jersey_number}])
 
 
                 # Update player_tags

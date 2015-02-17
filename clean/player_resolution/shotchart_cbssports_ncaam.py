@@ -43,8 +43,10 @@ class PlayerCbsSports:
                     'team_id'             : row[0],
                     'position'            : row[4]
                 }
+                jersey_number = row[3]
+                position = row[4]
                 self.dbobj.insert_or_update('player_cbssports_by_game', [insert_data])
-                self.dbobj.insert_or_update('player_by_game', [{'player_id': player_id, 'game_id': game_id}])
+                self.dbobj.insert_or_update('player_by_game', [{'player_id': player_id, 'game_id': game_id, 'jersey_number': jersey_number, 'position': position}])
 
                 result = self.dbobj.query("SELECT * FROM player_cbssports WHERE cbssports_player_id = '%s'" % (cbssports_player_id))
 
