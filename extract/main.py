@@ -13,7 +13,7 @@ LOGDIR_SOURCE = constants.LOGDIR_SOURCE
 LOGDIR_EXTRACT = constants.LOGDIR_EXTRACT
 
 
-def go(sourcedocs):
+def go(sourcedocs, dbobj, lgobj):
 
     for gamedata, files in sourcedocs:
         print "+++ EXTRACT: %s - %s" % (gamedata['id'], gamedata['abbrev'])
@@ -24,7 +24,7 @@ def go(sourcedocs):
 
             # Execute the module's default run() function, which implements the extract
             lib = importlib.import_module('extract.%s' % (module))
-            getattr(lib,'run')(gamedata, filename)
+            getattr(lib,'run')(gamedata, filename, dbobj, lgobj)
 
             logging.info("EXTRACT - %s - game_id: %s - : time_elapsed %.2f" % (module, gamedata['id'], time.time() - step_time))
 

@@ -74,8 +74,6 @@ class PlayerNbaCom:
                     """ % (nbacom_player_id, player_tag, last_name, first_name, first_name + ' ' + last_name, self.date_played))
                     logging.info("PLAYER - game_id: %s - adding new player to resolved player table: %s" % (self.gamedata['id'], row[2]))
 
-                    player_id = self.db.query_dict("SELECT id FROM player WHERE nbacom_player_id = '%s'" % (nbacom_player_id))[0]['id']
-                    self.db.insert_or_update('player_by_game', [{'player_id': player_id, 'game_id': self.gamedata['id'], 'jersey_number': jersey_number}])
 
 
                 # Update player_tags
@@ -115,6 +113,9 @@ class PlayerNbaCom:
                     WHERE pnba.game_id = %s
                         AND (t.id = %s OR t.id = %s)
                 """ % (self.gamedata['id'], self.gamedata['home_team_id'], self.gamedata['away_team_id']))
+
+                player = self.db.query_dict("SELECT player_id, team_id FROM player_nbacom_by_game WHERE nbacom_player_id = '%s' AND game_id = %s" % (nbacom_player_id, self.gamedata['id']))[0]
+                self.db.insert_or_update('player_by_game', [{'player_id': player['player_id'], 'game_id': self.gamedata['id'], 'team_id': player['team_id'], 'jersey_number': jersey_number}])
             else:
                 data = {
                     'nbacom_player_id':nbacom_player_id,'game_id':self.gamedata['id'],

@@ -110,13 +110,13 @@ class FindGamesEspnNba(FindGames):
         final = []
         for g in game_data:
             g['date_played'] = dt
-            g['abbrev'] = '%s_%s_%s@%s' % (dt, self.league_season_id, g['away_team'], g['home_team'])
+            g['abbrev'] = '%s_%s_%s@%s' % (dt, self.league_season_id, g['away_team'].replace(' ','-'), g['home_team'].replace(' ','-'))
             g['away_team_code'] = g['away_team']
             g['home_team_code'] = g['home_team']
             g['nbacom_game_id'] = '%s/%s%s' % (dt.isoformat().replace('-',''), g['away_team_nbacom'], g['home_team_nbacom'])
             g['cbssports_game_id'] = g['abbrev'].replace('-','')
-            g['permalink'] = g['away_team_nickname'] + '-at-' + g['home_team_nickname'] + '-' + dt.strftime("%B-%d-%Y")
-            g['permalink'] = g['permalink'].replace('-0','-').lower()
+            g['permalink'] = g['away_team_nickname'].replace(' ','-') + '-at-' + g['home_team_nickname'].replace(' ','-') + '-' + dt.strftime("%B-%d-%Y")
+            g['permalink'] = g['permalink'].replace('-0','-').replace(' ','-').lower()
             g['league_season_id'] = self.league_season_id
             final.append(g)
 
@@ -216,7 +216,6 @@ class FindGamesEspnNcaaM(FindGamesEspnNba):
 
     def _findTeamByEspnId(self, espn_team_id):
         data = self.dbobj.query_dict("SELECT * FROM team WHERE espn_team_id = %s AND league_season_id = %s" % (espn_team_id, self.league_season_id))
-        print data
         if data:
             return (data[0]['id'], data[0]['name'], data[0]['nickname'])
 
@@ -224,13 +223,15 @@ class FindGamesEspnNcaaM(FindGamesEspnNba):
 
 
     def _translateEspnGameData(self, game_data, dt):
+        # Removing special characters for abbrev
+        pattern = re.compile("[^\w\s]")
 
         final = []
         for g in game_data:
             g['date_played'] = dt
-            g['abbrev'] = '%s_%s_%s@%s' % (dt, self.league_season_id, g['away_team_name'], g['home_team_name'])
-            g['permalink'] = g['away_team_name'] + '-at-' + g['home_team_name'] + '-' + dt.strftime("%B-%d-%Y")
-            g['permalink'] = g['permalink'].replace('-0','-').lower()
+            g['abbrev'] = '%s_%s_%s@%s' % (dt, self.league_season_id, g['away_team_name'].replace(' ','-'), g['home_team_name'].replace(' ','-'))
+            g['permalink'] = pattern.sub("", g['away_team_name']) + '-at-' + pattern.sub("", g['home_team_name']) + '-' + dt.strftime("%B-%d-%Y")
+            g['permalink'] = g['permalink'].replace('-0','-').replace(' ','-').lower()
             g['league_season_id'] = self.league_season_id
             final.append(g)
 

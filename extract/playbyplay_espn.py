@@ -60,16 +60,16 @@ class Extract:
 
     def _getPeriodIndexes(self, rows):
         period_data = [[play_number] + map(lambda tablecell: tablecell.renderContents(),row.findAll('td')) for play_number, row in rows if len(row.findAll('td')) == 2]
-        periods = [line for line in period_data if 'Start of the' in line[2] or 'End of the' in line[2] or 'End Game' in line[1]]
+        periods = [line for line in period_data if 'Start of ' in line[2] or 'End of ' in line[2] or 'End Game' in line[1]]
 
         # Get the start and ending play numbers for each period in the game
         # Ex. for the 1st quarter, get the play indexes 2 and 140
         period_startend = {}
         for (play_number, cell1, cell2) in periods:
-            match = re.search('((?P<startorend>(Start|End)))\s+of\s+the\s+(?P<quarter>[0-9])(st|nd|rd|th)\s+(?P<period>(Quarter|Overtime))',cell2)
+            match = re.search('((?P<startorend>(Start|End)))\s+of\s+(?:the\s)?(?P<period_index>[0-9])(st|nd|rd|th)\s+(?P<period_name>(Quarter|Overtime|Half|half))',cell2)
             if match:
-                period_name = '%s %s' % (match.group('quarter'), match.group('period'))
-                period_number = constants.PERIODS[period_name]
+                period_name = '%s %s' % (match.group('period_index'), match.group('period_name'))
+                period_number = constants.PERIODS[period_name.lower()]
 
                 # This variable will be either 'start' or 'end'
                 startorend = match.group('startorend').lower()
@@ -123,10 +123,10 @@ class Extract:
 
         rows = [(play_number, t.renderContents()) for play_number, row in rows for t in row.findAll('td') if len(row.findAll('td')) == 1]
         for play_number,row in rows:
-            match = re.search('.*(?P<num>\d)(st|nd|rd|th)\s+(?P<period_type>(Quarter|Overtime))\s+Summary.*',row)
+            match = re.search('.*(?P<num>\d)(st|nd|rd|th)\s+(?P<period_type>(Quarter|Overtime|Half))\s+Summary.*',row)
             if match:
                 period_name = "%s %s" % (match.group('num'), match.group('period_type'))
-                period_number = constants.PERIODS[period_name]
+                period_number = constants.PERIODS[period_name.lower()]
                 periods.append((period_number, play_number, period_name))
 
         for period_number, play_number, period_name in sorted(periods):
@@ -177,7 +177,7 @@ class Extract:
         writer.writerows(list_data) 
 
 
-def run(game, filename):
+def run(game, filename, dbobj, lgobj):
     params = {
         'html': open(LOGDIR_SOURCE + filename,'r').read(),
         'filename':  filename,

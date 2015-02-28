@@ -23,8 +23,7 @@ class CleanBoxScore:
 
 
     def _getPlayerIdsInGame(self):
-        players = self.db.query_dict("SELECT * FROM player")
-        # Index by nbacom_player_id
+        players = self.db.query_dict("SELECT * FROM player_cbssports_by_game WHERE game_id = %s" % (self.gamedata['id']))
     
         players_indexed = {}
         for player in players:
@@ -41,7 +40,7 @@ class CleanBoxScore:
             try:
                 player_id = existing_players[int(cbssports_id)]
             except:
-                print "player id should exist, but surrogate key not found"
+                print "   + player id should exist, but surrogate key not found"
                 logging.warning("CLEAN - boxscore_cbssports - game_id: %s - cant match player: '%s'" % (self.gamedata['id'],name))
                 player_id = -1
 

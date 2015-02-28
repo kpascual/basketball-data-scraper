@@ -25,8 +25,16 @@ class League:
         if not league_season_id:
             league_season_id = self.league_season['id']
         return self.dbobj.query_dict("""
-            SELECT g.*, home_team.city home_team_city, away_team.city away_team_city 
+            SELECT 
+                g.*, 
+                home_team.city home_team_city, 
+                away_team.city away_team_city,
+                home_team.cbssports_code as home_team_cbssports_code,
+                away_team.cbssports_code as away_team_cbssports_code,
+                s.name as season_name
             FROM game g 
+                INNER JOIN league_season ls ON ls.id = g.league_season_id
+                INNER JOIN season s ON s.id = ls.season_id
                 INNER JOIN team home_team on home_team.id = g.home_team_id
                 INNER JOIN team away_team on away_team.id = g.away_team_id
             WHERE g.date_played = '%s'
@@ -133,32 +141,14 @@ class League:
 
 
     def getModules(self):
-        data = self.dbobj.query_dict("SELECT * FROM league_season_scrape_module WHERE league_season_id = %s" % (self.league_season['id']))
-        return [line['module_name'] for line in data]
-        module_map = {
-            'nba': [
-                'boxscore_nbacom',
-                'boxscore_cbssports',
-                'playbyplay_espn',
-                'playbyplay_nbacom',
-                'shotchart_cbssports',
-                'shotchart_espn',
-                'shotchart_nbacom',
-                'playbyplay_statsnbacom',
-                'shotchart_statsnbacom',
-                'boxscore_statsnbacom'
-            ],
-            'wnba': [
-                'boxscore_wnbacom',
-                'playbyplay_espn_wnba',
-                'playbyplay_wnbacom',
-                'shotchart_espn_wnba',
-                'shotchart_wnbacom'
-            ]    
-            
-        }
+        data = self.dbobj.query_dict("""
+            SELECT * 
+            FROM league_season_scrape_module 
+            WHERE league_season_id = %s 
+                AND is_active = 1
+        """ % (self.league_season['id']))
+        return data
 
-        return module_map[self.obj['slug']]
 
 
 

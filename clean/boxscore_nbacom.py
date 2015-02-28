@@ -115,36 +115,37 @@ class CleanBoxScore:
 
         player_stats = []
         for team_name, team in [('home',home_team), ('away',away_team)]:
-            players = team.findAll("pl")
+            if team:
+                players = team.findAll("pl")
 
-            for p in players:
-                player_stat_line = {}
+                for p in players:
+                    player_stat_line = {}
 
-                # Name split by pipe: nbacom_player_id, nbacom_player_code (i.e. dirk_nowitzki), name, status, position, jersey number
-                player_data = p['name'].split('|')
-                nbacom_player_id = player_data[0]
+                    # Name split by pipe: nbacom_player_id, nbacom_player_code (i.e. dirk_nowitzki), name, status, position, jersey number
+                    player_data = p['name'].split('|')
+                    nbacom_player_id = player_data[0]
 
-                try:
-                    player_stat_line['player_id'] = existing_players[nbacom_player_id]
-                except:
-                    player_stat_line['player_id'] = 0
+                    try:
+                        player_stat_line['player_id'] = existing_players[nbacom_player_id]
+                    except:
+                        player_stat_line['player_id'] = 0
 
-                parsed_stats = self._parseStatLine(p['stat'])
-                player_stat_line.update(parsed_stats)
-                
-                # Add team id
-                if team_name == 'home':
-                    player_stat_line['team_id'] = self.gamedata['home_team_id']
-                else:
-                    player_stat_line['team_id'] = self.gamedata['away_team_id']
-                
-                # Check if the player was a DNP
-                if p['dnp'] == 'DNP':
-                    player_stat_line['is_dnp'] = 1
-                else:
-                    player_stat_line['is_dnp'] = 0
+                    parsed_stats = self._parseStatLine(p['stat'])
+                    player_stat_line.update(parsed_stats)
+                    
+                    # Add team id
+                    if team_name == 'home':
+                        player_stat_line['team_id'] = self.gamedata['home_team_id']
+                    else:
+                        player_stat_line['team_id'] = self.gamedata['away_team_id']
+                    
+                    # Check if the player was a DNP
+                    if p['dnp'] == 'DNP':
+                        player_stat_line['is_dnp'] = 1
+                    else:
+                        player_stat_line['is_dnp'] = 0
 
-                player_stats.append(player_stat_line)
+                    player_stats.append(player_stat_line)
 
         return player_stats
 
@@ -155,7 +156,7 @@ class CleanBoxScore:
 
         # Pre-populate a dictionary of zero values
         data = {}
-        keys = ('time_played','fg','threept','ft','off_reb','def_reb','total_reb','assists','pfouls','steals','turnovers','blocks','unknown12','unknown13','total_points','plusminus','blocks_against') 
+        keys = ('time_played','fg','threept','ft','rebounds_offensive','rebounds_defensive','rebounds','assists','fouls','steals','turnovers','blocks','unknown12','unknown13','points','plus_minus','blocks_against') 
         for k in keys:
             data.setdefault(k,0)
    
@@ -168,8 +169,10 @@ class CleanBoxScore:
         # Convert time to seconds
         if data['time_played'] and data['time_played'] != ':':
             data['sec_played'] = int(data['time_played'].split(':')[0]) * 60 + int(data['time_played'].split(':')[1])
+            data['deciseconds_played'] = int(data['time_played'].split(':')[0]) * 60 + int(data['time_played'].split(':')[1]) * 10
         else:
             data['sec_played'] = 0
+            data['deciseconds_played'] = 0
 
         # Split field goals in to made/attempted
         if data['fg']:

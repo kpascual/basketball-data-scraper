@@ -50,18 +50,21 @@ def go(tuple_games_and_files, dbobj, lgobj):
         print "+++ CLEAN: %s - %s" % (gamedata['id'], gamedata['abbrev'])
 
         # add a player resolution folder, then have the resolution strategy call the correct module, and let them implement these details
-        print "+++ CLEAN: primary"
-        module = resolution_strategy['primary']
+        print "+++ CLEAN: PLAYER primary"
+        primary_module = resolution_strategy['primary']
         
-        if module in files.keys():
-            lib = importlib.import_module('clean.player_resolution.%s' % (module))
-            getattr(lib,'resolveNewPlayers')(gamedata, LOGDIR_EXTRACT + files[module], dbobj, lgobj)
+        if primary_module in files.keys():
+            print "   + %s" % (primary_module)
+            lib = importlib.import_module('clean.player_resolution.%s' % (primary_module))
+            getattr(lib,'resolveNewPlayers')(gamedata, LOGDIR_EXTRACT + files[primary_module], dbobj, lgobj)
 
         # Secondary
-        print "+++ CLEAN: secondary"
-        # for module in resolution_strategy['secondary']:
-        #   lib = importlib.import_module('clean.player_resolution.%s' % (module))
-        #   getattr(lib,'appendPlayerKeys')(gamedata, filename, dbobj)
+        print "+++ CLEAN: PLAYER secondary"
+        for module in resolution_strategy['secondary']:
+            if module in files.keys():
+                print "   + %s" % (module)
+                lib = importlib.import_module('clean.player_resolution.%s' % (module))
+                getattr(lib,'appendPlayerKeys')(gamedata, LOGDIR_EXTRACT + files[module], dbobj, lgobj)
 
         """
         print "  + Player database"

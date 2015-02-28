@@ -8,8 +8,6 @@ def run(filename, dbobj):
 
     newdata = []
     for line in data:
-        line['personal_fouls'] = line['pfouls']
-        del line['pfouls']
         del line['unknown13']
 
         newdata.append(line)

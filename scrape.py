@@ -121,7 +121,7 @@ def _scrape(dbobj, games, files, lgobj):
     gamedata = source.main.go(games, files)
 
     # Scrape
-    extract.main.go(gamedata)
+    extract.main.go(gamedata, dbobj, lgobj)
     clean.main.go(gamedata, dbobj, lgobj)
     load.main.go(gamedata, dbobj)
 

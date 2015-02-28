@@ -233,8 +233,11 @@ class Clean:
         del newdata['player_id']
         del newdata['player_name']
 
-        player_id = self.PlayerResolve.matchByStatsNbaComId(newdata['statsnbacom_player_id'])
-        if not player_id:
+        players = self._getPlayerIdsInGame()
+        dict_players = dict([(p['statsnbacom_player_id'],p['id']) for p in players])
+        if newdata['statsnbacom_player_id'] in dict_players.keys():
+            player_id = dict_players[newdata['statsnbacom_player_id']]
+        else:
             player_id = -1
             logging.info("BOXSCORE_STATSNBACOM - game_id: %s - Did not find match by statsnbacom_player_id: %s" % (self.game['id'], newdata['statsnbacom_player_id']))
             # Need a resolve by player name here
@@ -242,6 +245,15 @@ class Clean:
         newdata['player_id'] = player_id
 
         return newdata
+
+
+    def _getPlayerIdsInGame(self):
+        return self.dbobj.query_dict("""
+            SELECT * 
+            FROM player_by_game pbg
+                INNER JOIN player p ON p.id = pbg.player_id
+            WHERE pbg.game_id = %s
+        """ % (self.game['id']))
 
 
 
