@@ -43,6 +43,12 @@ class League:
         """ % (dt, league_season_id))
 
 
+    def getConfig(self):
+        return self.dbobj.query_dict("""
+            SELECT * FROM league_season_config WHERE league_season_id = %s
+        """ % (self.league_season['id']))[0]
+
+
     def getSeason(self, dt):
         data = self.dbobj.query_dict("""
             SELECT *
