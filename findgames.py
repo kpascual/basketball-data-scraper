@@ -73,12 +73,18 @@ class FindGamesEspnNba(FindGames):
                 resolved_team = self._findTeamName(team['team']['shortDisplayName'])
                 game['%s_team_id' % (team['homeAway'])] = resolved_team['id']
                 if team['homeAway'] == 'home':
+                    home_team = resolved_team
                     home_team_code = resolved_team['code']
                 if team['homeAway'] == 'away':
+                    away_team = resolved_team
                     away_team_code = resolved_team['code']
 
             game['abbrev'] = '%s_%s_%s@%s' % (dt, self.league_season_id, away_team_code, home_team_code)
             game['cbssports_game_id'] = '%s_%s@%s' % (dt, away_team_code, home_team_code)
+
+            pattern = re.compile("[^\w\s]")
+            game['permalink'] = pattern.sub("", away_team['nickname']) + '-at-' + pattern.sub("", home_team['nickname']) + '-' + dt.strftime("%B-%d-%Y")
+            game['permalink'] = game['permalink'].replace('-0','-').replace(' ','-').lower()
 
 
             games.append(game)
