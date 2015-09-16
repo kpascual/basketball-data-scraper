@@ -117,3 +117,4 @@ def go(tuple_games_and_files, dbobj, lgobj):
 
 if __name__ == '__main__':
     sys.exit(main())
+
