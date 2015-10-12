@@ -7,10 +7,8 @@
 This library was created on a Mac, so the setup instructions are geared toward a *nix environment (sorry Windows users)
 
 * Python 2.5 or greater
-* MySQL
 * BeautifulSoup4 (pip install beautifulsoup4)
 * lxml (used within BeautifulSoup) (pip install lxml)
-* MySQLdb - Python's API to the MySQL database (pip install MySQL-python)
 
 
 ## Instructions
@@ -30,7 +28,7 @@ PYTHONPATH="/your_folder_path/basketball-data-scraper:$PYTHONPATH"
 export PYTHONPATH
 ```
 
-* Run the build.sh script with three parameters: 1) database username 2) database password 3) database name. This will set up the database and the config file for you.
+* Run the build.sh script
 
 
 ```
