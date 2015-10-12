@@ -23,7 +23,7 @@ class Extract(playbyplay_espn.Extract):
 
 
 
-def run(game, filename, dbobj, lgobj):
+def run(game, filename):
     params = {
         'html': open(LOGDIR_SOURCE + filename,'r').read(),
         'filename':  filename,

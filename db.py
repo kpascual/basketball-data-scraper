@@ -1,4 +1,5 @@
 import MySQLdb
+import sqlite3
 
 
 class Db:
@@ -47,4 +48,40 @@ class Db:
                 %s
             """ % (table_name, ','.join(headers), ','.join(quoted_values),','.join(duplicate_key_clauses))
             self.query(sql)
+
+class DbLite:
+
+    def __init__(self):
+        self.conn = sqlite3.connect("metadata/leagues.db")
+        self.conn.row_factory = sqlite3.Row
+        
+
+    def query(self, sql):
+        curs = self.curs()
+        curs.execute(sql)
+        
+        return curs.fetchall()
+
+
+    def curs(self):
+        return self.conn.cursor()
+
+
+    def query_dict(self, sql, params = None):
+        curs = self.conn.cursor()
+
+        if params is None:
+            curs.execute(sql)
+        else:
+            curs.execute(sql, params)
+
+        
+        return [dict(zip(row.keys(), row)) for row in curs.fetchall()]
+
+
+    def commit(self):
+        self.conn.commit()
+
+
+
 

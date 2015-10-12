@@ -1,8 +1,6 @@
 import sys
 import datetime
 import time
-import os
-import MySQLdb
 import logging
 import importlib
 
@@ -13,10 +11,10 @@ LOGDIR_SOURCE = constants.LOGDIR_SOURCE
 LOGDIR_EXTRACT = constants.LOGDIR_EXTRACT
 
 
-def go(sourcedocs, dbobj, lgobj):
+def go(sourcedocs):
 
     for gamedata, files in sourcedocs:
-        print "+++ EXTRACT: %s - %s" % (gamedata['id'], gamedata['abbrev'])
+        print "+++ EXTRACT: %s - %s" % (gamedata['id'], gamedata['permalink'])
 
         for module, filename in files.items():
             print "  + %s" % (module)
@@ -24,7 +22,7 @@ def go(sourcedocs, dbobj, lgobj):
 
             # Execute the module's default run() function, which implements the extract
             lib = importlib.import_module('extract.%s' % (module))
-            getattr(lib,'run')(gamedata, filename, dbobj, lgobj)
+            getattr(lib,'run')(gamedata, filename)
 
             logging.info("EXTRACT - %s - game_id: %s - : time_elapsed %.2f" % (module, gamedata['id'], time.time() - step_time))
 

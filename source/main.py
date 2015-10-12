@@ -1,4 +1,3 @@
-import MySQLdb
 import sys
 import datetime
 import urllib2
@@ -96,11 +95,11 @@ def func_boxscore_espn_ncaam(game, url):
 
 def getAndSaveFiles(game, files):
 
-    print "+++ SOURCE: %s - %s" % (game['id'], game['abbrev'])
+    print "+++ SOURCE: %s - %s" % (game['id'], game['permalink'])
 
     filenames = {}
     for f in files:
-        filename = '%s_%s' % (game['abbrev'],f['module_name'])
+        filename = '%s_%s' % (game['id'], f['module_name'])
         if not _doesFileExist(filename):
             print "  + %s" % (f['module_name'])
             body = globals()["func_" + f['module_name']](game, f['source_url'])

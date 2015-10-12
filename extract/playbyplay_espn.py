@@ -177,7 +177,7 @@ class Extract:
         writer.writerows(list_data) 
 
 
-def run(game, filename, dbobj, lgobj):
+def run(game, filename):
     params = {
         'html': open(LOGDIR_SOURCE + filename,'r').read(),
         'filename':  filename,

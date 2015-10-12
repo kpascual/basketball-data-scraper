@@ -12,13 +12,11 @@ LOGDIR_SOURCE = constants.LOGDIR_SOURCE
 
 class Extract:
 
-    def __init__(self, html, filename, gamedata, dbobj, lgobj):
+    def __init__(self, html, filename, gamedata):
         self.html = html
         self.gamedata = gamedata
         self.game_name = self.gamedata['abbrev']
         self.filename = filename
-        self.lgobj = lgobj
-        self.dbobj = dbobj
 
         self.home_team_city = self.gamedata['home_team_city']
         self.away_team_city = self.gamedata['away_team_city']
@@ -35,7 +33,6 @@ class Extract:
 
     def getPlayerData(self):
         soup = BeautifulSoup(self.html,'lxml')
-        teams = self._getTeams()
         
         # 1. iterate through table, and determine current team
         # 2. parse out players
@@ -126,22 +123,6 @@ class Extract:
 
 
 
-    def _getTeams(self):
-        return self.dbobj.query_dict("""
-            SELECT t.* 
-            FROM team t
-                INNER JOIN game g ON g.away_team_id = t.id
-            WHERE
-                g.id = %s
-            UNION ALL
-            SELECT t.* 
-            FROM team t
-                INNER JOIN game g ON g.home_team_id = t.id
-            WHERE
-                g.id = %s
-        """ % (self.gamedata['id'], self.gamedata['id']))
-
-
     def dumpToFile(self, list_data):
         f = open(LOGDIR_EXTRACT + self.filename,'wb')
         f.write(json.dumps(list_data))
@@ -153,13 +134,11 @@ class Extract:
 
 
 
-def run(game, filename, dbobj, lgobj):
+def run(game, filename):
     params = {
         'html': open(LOGDIR_SOURCE + filename,'r').read(),
         'filename':  filename,
         'gamedata':  game,
-        'dbobj':  dbobj,
-        'lgobj': lgobj
     }
     Extract(**params).extractAndDump()
 

@@ -15,7 +15,7 @@ LOGDIR_SOURCE = constants.LOGDIR_SOURCE
 def copyFile(filename):
     shutil.copyfile(LOGDIR_SOURCE + filename, LOGDIR_EXTRACT + filename)
 
-def run(game, filename, dbobj, lgobj):
+def run(game, filename):
     shutil.copyfile(LOGDIR_SOURCE + filename, LOGDIR_EXTRACT + filename)
 
 def main():

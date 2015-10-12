@@ -1,2 +1,2 @@
-def run(game, filename, dbobj, lgobj):
+def run(game, filename):
     pass

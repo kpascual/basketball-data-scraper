@@ -1,9 +1,10 @@
 import sys
 import time
 import datetime
-import MySQLdb
 import os
 import logging
+import json
+import sqlite3
 
 from config import constants
 import configg
@@ -15,6 +16,10 @@ import load.main
 
 
 logging.basicConfig(filename='etl.log',level=logging.INFO,format='%(asctime)s - %(levelname)s - %(message)s')
+
+conn = sqlite3.connect("metadata/leagues.db")
+conn.row_factory = sqlite3.Row
+curs = conn.cursor()
 
 
 def getParamsAutoCurrent():
@@ -30,16 +35,22 @@ def getParamsAutoCurrent():
     except:
         dt = datetime.date.today() - datetime.timedelta(days=1)
 
-    league_id = configg.dbobj.query_dict("SELECT id FROM league WHERE name = '%s'" % (league_name))[0]['id']
-    print "+++ Database name: %s" % (str(configg.db_params['db']))
+    curs.execute("SELECT id FROM league WHERE name = ?", (league_name))
+    league_id = curs.fetchone()[0]
 
-    args = {'dbobj': configg.dbobj, 'league_id': league_id, 'start_date': dt, 'end_date': dt, 'files': files}
+    args = {'league_id': league_id, 'start_date': dt, 'end_date': dt, 'files': files}
     return args
 
 
 def getParamsManual():
     # Choose league
-    leagues = configg.dbobj.query_dict("SELECT * FROM league")
+    curs.execute("SELECT * FROM league")
+    leagues = []
+    lgs = curs.fetchall()
+    for lg in lgs:
+        leagues.append(dict(zip(lg.keys(), lg)))
+    print leagues
+
     print 'ID:   League Name'
     for l in leagues:
         print '%s:   %s' % (l['id'], l['name'])
@@ -47,7 +58,8 @@ def getParamsManual():
     league_input = int(league_input)
 
     # Choose league season
-    league_seasons = configg.dbobj.query_dict("SELECT ls.id, s.name as season_name FROM league_season ls INNER JOIN league l ON l.id = ls.league_id INNER JOIN season s ON s.id = ls.season_id WHERE l.id = %s" % (league_input))
+    lgobj = league.League(league_id=league_input)
+    league_seasons = lgobj.getLeagueSeasons()
     print 'ID:   Season Name'
     for ls in league_seasons:
         print '%s:   %s' % (ls['id'], ls['season_name'])
@@ -67,15 +79,15 @@ def getParamsManual():
             end_date_input = datetime.datetime.strptime(end_date_input, '%Y-%m-%d').date()
 
     print "+++ Database name: %s" % (str(configg.db_params['db']))
-    return {'dbobj': configg.dbobj, 'league_id': league_input, 'league_season_id': league_season_input, 'files': [], 'start_date': start_date_input, 'end_date': end_date_input}
+    return {'league_id': league_input, 'league_season_id': league_season_input, 'files': [], 'start_date': start_date_input, 'end_date': end_date_input}
 
 
 def _verifyLeague(params):
     args = params.copy()
-    for arg in ['start_date', 'end_date', 'files']:
+    for arg in ['start_date', 'end_date', 'files', 'league_season_id']:
         del args[arg]
     lgobj = league.League(**args)
-    if not lgobj.obj or not lgobj.league_season:
+    if not lgobj.obj:
         return False
     else:
         return lgobj
@@ -94,17 +106,16 @@ def run(params):
             logging.info("MASTER - starting ETL job - league: %s - date: %s" % (lgobj.name, dt))
 
             print "+++ League identified: %s" % (str(lgobj.obj))
-            print "+++ League season identified: %s" % (str(lgobj.league_season))
 
             # Choose games
-            games = lgobj.getGames(dt)
+            games = lgobj.getGames(dt, params['league_season_id'])
             print "+++ %s games found" % (len(games))
             if not params['files']:
-                files = lgobj.getModules()
+                files = lgobj.getModules(params['league_season_id'])
             else: 
                 files = params['files']
 
-            _scrape(params['dbobj'], games, files, lgobj)
+            _scrape(games, files, lgobj)
 
             time_elapsed = "Total time: %.2f sec" % (time.time() - step_time)
             logging.info(time_elapsed)
@@ -115,15 +126,16 @@ def run(params):
         print "Could not find league. Quitting."
 
 
-def _scrape(dbobj, games, files, lgobj):
+def _scrape(games, files, lgobj):
 
     # Get source
-    gamedata = source.main.go(games, files)
-
     # Scrape
-    extract.main.go(gamedata, dbobj, lgobj)
-    clean.main.go(gamedata, dbobj, lgobj)
-    load.main.go(gamedata, dbobj)
+    gamedata = source.main.go(games, files)
+    extract.main.go(gamedata)
+
+    # Clean
+    #clean.main.go(gamedata, dbobj, lgobj)
+    #load.main.go(gamedata, dbobj)
 
 
 
