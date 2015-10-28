@@ -30,7 +30,7 @@ class FindPlayer:
             player_id = self.matchPlayerByNameApproximate(player_tag.replace('_',' '), player_list)
 
         if player_id == 0:
-            logging.warning("CLEAN - find_player - game_id: ? - cant find player: '%s'" % (player_tag))
+            logging.warning("CLEAN - find_player - game_id: ? - cant find player: '%s', %s" % (player_tag, str(player_list)))
 
         return player_id
 
@@ -68,7 +68,7 @@ class FindPlayer:
             if len(match) > 1:
                 logging.warning("CLEAN - find_player - game_id: ? - multiple matching players found: %s" % (str(match)))
         else:
-            logging.warning("CLEAN - find_player - game_id: ? - cant find player: '%s'" % (player_name))
+            logging.warning("CLEAN - find_player - game_id: ? - cant find player: '%s', %s" % (player_name, str(player_names)))
 
         return player_id
 

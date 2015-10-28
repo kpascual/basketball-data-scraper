@@ -9,9 +9,12 @@ class Db:
         self.conn = MySQLdb.connect(**credentials)
         
 
-    def query(self, sql):
+    def query(self, sql, params = None):
         curs = self.curs()
-        curs.execute(sql)
+        if params is None:
+            curs.execute(sql)
+        else:
+            curs.execute(sql, params)
         
         return curs.fetchall()
 
@@ -20,9 +23,12 @@ class Db:
         return self.conn.cursor()
 
 
-    def query_dict(self, sql):
+    def query_dict(self, sql, params = None):
         curs = self.conn.cursor(MySQLdb.cursors.DictCursor)
-        curs.execute(sql)
+        if params is None:
+            curs.execute(sql)
+        else:
+            curs.execute(sql, params)
         
         return curs.fetchall()
 

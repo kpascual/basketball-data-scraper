@@ -105,8 +105,9 @@ def go(tuple_games_and_files, dbobj, lgobj):
             obj.resolveStatsNbacomByGame(gamedata['id'])
         """
 
+        print "+++ CLEAN: game results"
         for module, filename in files.items():
-            print "  + %s" % (module)
+            print "   + %s" % (module)
             step_time = time.time()
             lib = importlib.import_module('clean.%s' % (module))
             getattr(lib,'run')(gamedata, filename, dbobj)
