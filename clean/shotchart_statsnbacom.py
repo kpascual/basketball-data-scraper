@@ -124,10 +124,10 @@ class Clean:
 
     def _getPlayers(self, team_id):
         return self.dbobj.query_dict("""
-            SELECT pnba.player_id, pnba.team_id, pnba.last_name, p.full_name, p.full_name_alt1, p.full_name_alt2 
-            FROM player_nbacom_by_game pnba 
-                INNER JOIN player p ON p.id = pnba.player_id 
-            WHERE pnba.game_id = %s AND pnba.team_id = %s
+            SELECT pg.player_id, pg.team_id, p.last_name, p.full_name, p.full_name_alt1, p.full_name_alt2 
+            FROM player_by_game pg
+                INNER JOIN player p ON p.id = pg.player_id 
+            WHERE pg.game_id = %s AND pg.team_id = %s
         """ % (self.game['id'], team_id))
 
 
