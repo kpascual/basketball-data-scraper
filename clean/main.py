@@ -42,8 +42,8 @@ def main():
 
 
 
-def go(tuple_games_and_files, dbobj, lgobj):
-    resolution_strategy = lgobj.getPlayerResolveStrategy()
+def go(tuple_games_and_files, dbobj, lgobj, league_season_id):
+    resolution_strategy = lgobj.getPlayerResolveStrategy(league_season_id)
 
     for gamedata, files in tuple_games_and_files:
 
