@@ -4,7 +4,6 @@ import time
 import json
 import player_resolution.find_player as find_player
 import logging
-import player
 
 from config import config
 from config import constants 
@@ -138,7 +137,6 @@ class Clean:
     def _resolvePlays(self, plays):
         data = []
         patterns = self.dbobj.query_dict("SELECT id, re FROM play_type_statsnbacom ORDER BY priority ASC")
-        resolveobj = player.Resolve(self.dbobj)
 
 
         for play in plays:
@@ -158,11 +156,11 @@ class Clean:
                             player_list_last_name = [(line['id'], line['last_name']) for line in self.away_players]
                             player_list_full_name = [(line['id'], line['full_name']) for line in self.away_players]
 
-                        player_match = resolveobj.matchByNameApproximate(matched_attributes['player_id'], player_list_last_name)
+                        player_match = find_player.matchPlayerByNameApproximate(matched_attributes['player_id'], player_list_last_name)
                         if player_match:
                             player_id = player_match
                         else:
-                            player_match = resolveobj.matchByNameApproximate(matched_attributes['player_id'], player_list_full_name)
+                            player_match = find_player.matchPlayerByNameApproximate(matched_attributes['player_id'], player_list_full_name)
                             if player_match:
                                 player_id = player_match
 

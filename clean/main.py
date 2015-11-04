@@ -6,7 +6,6 @@ import os
 import logging
 import importlib
 
-import player
 
 from config import constants
 
@@ -65,45 +64,6 @@ def go(tuple_games_and_files, dbobj, lgobj, league_season_id):
                 print "   + %s" % (module)
                 lib = importlib.import_module('clean.player_resolution.%s' % (module))
                 getattr(lib,'appendPlayerKeys')(gamedata, LOGDIR_EXTRACT + files[module], dbobj, lgobj)
-
-        """
-        print "  + Player database"
-        if 'boxscore_nbacom' in files:
-            obj = player.PlayerNbaCom(LOGDIR_EXTRACT + files['boxscore_nbacom'], gamedata, dbobj)
-            obj.resolveNewPlayers()
-    
-        if 'boxscore_wnbacom' in files:
-            obj = player.PlayerNbaCom(LOGDIR_EXTRACT + files['boxscore_wnbacom'], gamedata, dbobj)
-            obj.resolveNewPlayers()
-    
-        if 'shotchart_cbssports' in files:
-            obj = player.PlayerCbsSports(LOGDIR_EXTRACT + files['shotchart_cbssports'] + '_players', gamedata, dbobj, lgobj)
-            obj.resolveNewPlayers()
-            player.updatePlayerFullName(dbobj)
-
-        if 'shotchart_cbssports_ncaam' in files:
-            obj = player.PlayerCbsSports(LOGDIR_EXTRACT + files['shotchart_cbssports_ncaam'] + '_players', gamedata, dbobj, lgobj)
-            obj.resolveNewPlayers()
-            player.updatePlayerFullName(dbobj)
-
-        if 'boxscore_statsnbacom' in files:
-            obj = player.PlayerStatsNbaCom(LOGDIR_EXTRACT + files['boxscore_statsnbacom'], gamedata, dbobj)
-            obj.resolveNewPlayers()
-
-            # Resolve with master player list
-            obj = player.Resolve(dbobj)
-            obj.resolveStatsNbacom()
-            obj.resolveStatsNbacomByGame(gamedata['id'])
-
-        if 'boxscore_statswnbacom' in files:
-            obj = player.PlayerStatsNbaCom(LOGDIR_EXTRACT + files['boxscore_statswnbacom'], gamedata, dbobj)
-            obj.resolveNewPlayers()
-
-            # Resolve with master player list
-            obj = player.Resolve(dbobj)
-            obj.resolveStatsNbacom()
-            obj.resolveStatsNbacomByGame(gamedata['id'])
-        """
 
         print "+++ CLEAN: game results"
         for module, filename in files.items():

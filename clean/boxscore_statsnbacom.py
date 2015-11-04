@@ -6,7 +6,6 @@ import logging
 
 from config import config
 from config import constants 
-import player
 
 
 LOGDIR_CLEAN = constants.LOGDIR_CLEAN
@@ -21,7 +20,6 @@ class Clean:
         self.dbobj = dbobj
         self.game = gamedata
         self.filename = filename
-        self.PlayerResolve = player.Resolve(self.dbobj)
 
 
     def clean(self):
