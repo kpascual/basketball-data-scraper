@@ -6,7 +6,7 @@ import logging
 
 from bs4 import BeautifulSoup
 from bs4 import CData
-import find_player
+import player_resolution.find_player as find_player
 
 from config import constants 
 

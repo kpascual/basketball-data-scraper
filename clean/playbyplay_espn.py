@@ -6,7 +6,7 @@ import difflib
 import json
 import logging
 
-import find_player
+import player_resolution.find_player as find_player
 import resolve
 from config import config
 from config import constants 

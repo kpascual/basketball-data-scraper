@@ -49,7 +49,6 @@ def getParamsManual():
     lgs = curs.fetchall()
     for lg in lgs:
         leagues.append(dict(zip(lg.keys(), lg)))
-    print leagues
 
     print 'ID:   League Name'
     for l in leagues:

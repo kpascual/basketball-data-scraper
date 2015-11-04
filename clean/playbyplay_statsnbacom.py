@@ -2,7 +2,7 @@ import re
 import datetime
 import time
 import json
-import find_player
+import player_resolution.find_player as find_player
 import logging
 import player
 

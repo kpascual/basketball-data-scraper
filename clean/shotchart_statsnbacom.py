@@ -4,7 +4,7 @@ import datetime
 import json
 import logging
 
-import find_player
+import player_resolution.find_player as find_player
 from config import constants 
 from config import config
 
