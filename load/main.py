@@ -22,10 +22,12 @@ def go(tuple_games_and_files, dbobj):
         for module, filename in files.items():
             step_time = time.time()
 
-            lib = importlib.import_module('load.%s' % (module))
-            rows_loaded = getattr(lib, 'run')(filename, dbobj)
+            if os.path.isfile(LOGDIR_CLEAN + filename):
+                lib = importlib.import_module('load.%s' % (module))
+                rows_loaded = getattr(lib, 'run')(filename, dbobj)
+ 
+                print "  + %s - %s rows loaded - %.2f sec" % (module, rows_loaded, time.time() - step_time)
 
-            print "  + %s - %s rows loaded - %.2f sec" % (module, rows_loaded, time.time() - step_time)
 
 
         logging.info("LOAD - game_id: %s - time_elapsed %.2f" % (gamedata['id'], time.time() - s_time))
