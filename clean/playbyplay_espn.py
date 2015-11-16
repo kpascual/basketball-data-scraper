@@ -7,7 +7,6 @@ import json
 import logging
 
 import player_resolution.find_player as find_player
-import resolve
 from config import config
 from config import constants 
 
@@ -236,12 +235,34 @@ class Clean:
 
 
     def _identifyTeam(self, team_name):
-        team = resolve.matchTeam(team_name, [self.away_team, self.home_team])
+        team = self._matchTeam(team_name, [self.away_team, self.home_team])
 
         if team:
             return team['id']
         else:
             return -1
+
+
+    def _matchTeam(self, team_name, teams):
+        for team in teams:
+            if team_name == team['name']:
+                return team
+            elif team_name == team['nickname']:
+                return team
+            elif team_name == team['alternate_nickname']:
+                return team
+            elif team_name == team['alternate_nickname2']:
+                return team
+            elif team_name == team['city']:
+                return team
+            elif team_name == team['alternate_city'] + ' ' + team['nickname']:
+                return team
+            elif team_name == team['alternate_city'] + ' ' + team['alternate_nickname']:
+                return team
+            elif team_name == team['alternate_city'] + ' ' + team['alternate_nickname2']:
+                return team
+
+        return False
 
 
     def _identifyPlayer(self, player_name):
