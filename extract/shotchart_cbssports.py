@@ -17,9 +17,6 @@ class ShotExtract:
     def __init__(self, html, filename, gamedata):
         self.html = html
         self.gamedata = gamedata
-        self.game_name = self.gamedata['abbrev']
-        self.away_team = self.gamedata['away_team_id']
-        self.home_team = self.gamedata['home_team_id']
         self.filename = filename
 
 
@@ -38,7 +35,7 @@ class ShotExtract:
         
         match = pattern.search(self.html)
         if match:
-            matched = [[self.home_team, player.split(':')[0]] + player.split(':')[1].split(',') for player in match.group('info').split('|')] 
+            matched = [[self.gamedata['home_team_id'], player.split(':')[0]] + player.split(':')[1].split(',') for player in match.group('info').split('|')] 
             return matched
 
         return []
@@ -49,7 +46,7 @@ class ShotExtract:
         
         match = pattern.search(self.html)
         if match:
-            matched = [[self.away_team, player.split(':')[0]] + player.split(':')[1].split(',') for player in match.group('info').split('|')] 
+            matched = [[self.gamedata['away_team_id'], player.split(':')[0]] + player.split(':')[1].split(',') for player in match.group('info').split('|')] 
             return matched
 
         return []

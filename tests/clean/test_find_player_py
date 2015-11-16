@@ -1,0 +1,25 @@
+import unittest
+from clean.player_resolution import find_player
+
+
+class TestFindPlayer(unittest.TestCase):
+    def setUp(self):
+        self.obj = find_player.FindPlayer({})
+
+    def testExactPlayerNameMatch(self):
+        self.assertEqual(self.obj.matchPlayerByNameApproximate('name', [(1, 'name')]), 1)
+
+    def testNoPlayerMatchReturnsZero(self):
+        self.assertEqual(self.obj.matchPlayerByNameApproximate('name', [(1, 'mismatch')]), 0)
+
+    def testCaseInsensitivity(self):
+        self.assertEqual(self.obj.matchPlayerByNameApproximate('name', [(1, 'Name')]), 1)
+
+    def testLongNameOverShortName(self):
+        self.assertEqual(self.obj.matchPlayerByNameApproximate('Kevin Love', [(1, 'Kevin Love'), (2, 'Kevin Lo')]), 1)
+
+    def testPlayerWithApostrophe(self):
+        self.assertEqual(self.obj.matchPlayerByNameApproximate('D\'Angelo Russell', [(1, 'Dangelo Russell'), (2, 'Bryon Russell')]), 1)
+
+
+

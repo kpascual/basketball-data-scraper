@@ -14,11 +14,8 @@ class Extract:
     def __init__(self, html, filename, gamedata):
         self.html = html
         self.gamedata = gamedata
-        self.game_name = self.gamedata['abbrev']
         self.filename = filename
 
-        self.home_team_city = self.gamedata['home_team_city']
-        self.away_team_city = self.gamedata['away_team_city']
 
 
     def extractAndDump(self):
@@ -146,10 +143,10 @@ class Extract:
         
         cleaned_timeouts = []
         for (counter, time_left, action) in timeouts:
-            if self.home_team_city.lower() in action.lower():
+            if self.gamedata['home_team_city'].lower() in action.lower():
                 cleaned_timeouts.append((counter, time_left,'','','',action))
        
-            elif self.away_team_city.lower() in action.lower():
+            elif self.gamedata['away_team_city'].lower() in action.lower():
                 cleaned_timeouts.append((counter, time_left,'','',action,''))
             else:
                 cleaned_timeouts.append((counter, time_left,'','',action,''))
