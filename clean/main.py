@@ -46,7 +46,7 @@ def go(tuple_games_and_files, dbobj, lgobj, league_season_id):
 
     for gamedata, files in tuple_games_and_files:
 
-        print "+++ CLEAN: %s - %s" % (gamedata['id'], gamedata['abbrev'])
+        print "+++ CLEAN: %s - %s" % (gamedata['id'], gamedata['permalink'])
 
         # add a player resolution folder, then have the resolution strategy call the correct module, and let them implement these details
         print "+++ CLEAN: PLAYER primary"

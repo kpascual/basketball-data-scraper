@@ -2,6 +2,7 @@ import sys
 import datetime
 import urllib2
 import os
+import json
 
 from config import constants
 
@@ -32,16 +33,16 @@ def func_shotchart_cbssports(game, url):
 
 
 def func_playbyplay_nbacom(game, url):
-    url = url.replace('<game_id>',str(game['nbacom_game_id'])).replace('<year>',game['season_name'][:4]) 
+    url = url.replace('<game_id>',str(game['nbacom_game_id'])).replace('<year>',game['nbacom_season_name']) 
     return getSourceDoc(url) 
 
 
 def func_shotchart_nbacom(game, url):
-    return getSourceDoc(url.replace('<game_id>',str(game['nbacom_game_id'])).replace('<year>',game['season_name'][:4])) 
+    return getSourceDoc(url.replace('<game_id>',str(game['nbacom_game_id'])).replace('<year>',game['nbacom_season_name'])) 
 
 
 def func_boxscore_nbacom(game, url):
-    return getSourceDoc(url.replace('<game_id>',str(game['nbacom_game_id'])).replace('<year>',game['season_name'][:4])) 
+    return getSourceDoc(url.replace('<game_id>',str(game['nbacom_game_id'])).replace('<year>',game['nbacom_season_name'])) 
 
 
 def func_playbyplay_espn(game, url):
@@ -53,7 +54,7 @@ def func_shotchart_espn(game, url):
 
 
 def func_shotchart_wnbacom(game, url):
-    return getSourceDoc(url.replace('<game_id>',str(game['nbacom_game_id'])).replace('<year>',game['season_name'][:4])) 
+    return getSourceDoc(url.replace('<game_id>',str(game['nbacom_game_id'])).replace('<year>',game['nbacom_season_name'])) 
 
 
 def func_playbyplay_statsnbacom(game, url):
@@ -69,7 +70,7 @@ def func_boxscore_statsnbacom(game, url):
 
 
 def func_boxscore_wnbacom(game, url):
-    return getSourceDoc(url.replace('<game_id>',str(game['nbacom_game_id'])).replace('<year>',game['season_name'][:4])) 
+    return getSourceDoc(url.replace('<game_id>',str(game['nbacom_game_id'])).replace('<year>',game['nbacom_season_name'])) 
 
 
 def func_playbyplay_espn_wnba(game, url):
@@ -91,6 +92,22 @@ def func_shotchart_cbssports_ncaam(game, url):
 def func_boxscore_espn_ncaam(game, url):
     return getSourceDoc(url.replace('<game_id>',str(game['espn_game_id']))) 
 
+def func_boxscore_nbacom_dleague(game, url):
+    return getSourceDoc(url.replace('<game_id>',str(game['statsnbacom_game_id'])).replace('<season>',game['nbacom_season_name'])) 
+
+def func_playbyplay_nbacom_dleague(game, url):
+    # To do: figure out how to deal with multiple periods
+    docs = {}
+    for period in range(1, 12):
+        try:
+            
+            doc = getSourceDoc(url.replace('<game_id>',str(game['statsnbacom_game_id'])).replace('<season>',game['nbacom_season_name']).replace('<period>', str(period))) 
+            docs[period] = json.loads(doc)
+        except:
+            print "    + Period %s data not found. Moving on" % (period)
+            break
+
+    return json.dumps(docs)
 
 
 def getAndSaveFiles(game, files):

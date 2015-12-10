@@ -16,7 +16,7 @@ LOGDIR_CLEAN = constants.LOGDIR_CLEAN
 def go(tuple_games_and_files, dbobj):
 
     for gamedata, files in tuple_games_and_files:
-        print "+++ LOAD: %s - %s" % (gamedata['id'], gamedata['abbrev'])
+        print "+++ LOAD: %s - %s" % (gamedata['id'], gamedata['permalink'])
         s_time = time.time()
 
         for module, filename in files.items():
