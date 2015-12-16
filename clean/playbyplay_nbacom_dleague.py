@@ -49,13 +49,16 @@ class Clean:
                     'vs': 'away_score',
                     'hs': 'home_score',
                     'locX': 'x',
-                    'locY': 'y',
                     'de': 'description',
                     'evt': 'event_index'
                 }
                 for nbacom_key, vorped_key in mappings.items():
                     play[vorped_key] = play[nbacom_key]
                     del play[nbacom_key]
+
+                # Alter the y-value, as it's in relation to the basket
+                play['y'] = int(play['locY']) + 50
+                del play['locY']
 
                 plays.append(play)
 

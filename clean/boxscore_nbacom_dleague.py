@@ -103,9 +103,6 @@ class Clean:
 
 
     def parseGameStats(self, data):
-        for key, val in data.items():
-            if key != 'hls' and key != 'vls':
-                print (key, val)
         newdata = {}
         newdata['game_id'] = self.game['id']
         newdata['ties'] = data['gsts']['tt']
@@ -118,6 +115,9 @@ class Clean:
         newdata['date_utc'] = data['gdtutc']
         newdata['time_utc'] = data['utctm']
         newdata['status'] = data['stt']
+
+        newdata['away_score'] = data['vls']['s']
+        newdata['home_score'] = data['hls']['s']
 
         print data['gsts']
 
