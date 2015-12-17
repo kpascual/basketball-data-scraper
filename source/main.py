@@ -110,6 +110,24 @@ def func_playbyplay_nbacom_dleague(game, url):
     return json.dumps(docs)
 
 
+def func_boxscore_nbacom_wnba(game, url):
+    return getSourceDoc(url.replace('<game_id>',str(game['statsnbacom_game_id'])).replace('<season>',game['nbacom_season_name'])) 
+
+def func_playbyplay_nbacom_wnba(game, url):
+    # To do: figure out how to deal with multiple periods
+    docs = {}
+    for period in range(1, 12):
+        try:
+            
+            doc = getSourceDoc(url.replace('<game_id>',str(game['statsnbacom_game_id'])).replace('<season>',game['nbacom_season_name']).replace('<period>', str(period))) 
+            docs[period] = json.loads(doc)
+        except:
+            print "    + Period %s data not found. Moving on" % (period)
+            break
+
+    return json.dumps(docs)
+
+
 def getAndSaveFiles(game, files):
 
     print "+++ SOURCE: %s - %s" % (game['id'], game['permalink'])
