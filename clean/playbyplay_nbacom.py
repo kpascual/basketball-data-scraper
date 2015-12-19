@@ -145,11 +145,11 @@ class Clean:
 
 
     def _getAwayPlayers(self):
-        return self.qry.query_dict("SELECT pnba.player_id, pnba.team_id, pnba.last_name, p.full_name, p.full_name_alt1, p.full_name_alt2 FROM player_nbacom_by_game pnba INNER JOIN player p ON p.id = pnba.player_id WHERE pnba.game_id = %s AND pnba.team_id = %s" % (self.game['id'], self.game['away_team_id']))
+        return self.qry.query_dict("SELECT pnba.player_id, pnba.team_id, p.last_name, p.full_name, p.full_name_alt1, p.full_name_alt2 FROM player_by_game pnba INNER JOIN player p ON p.id = pnba.player_id WHERE pnba.game_id = %s AND pnba.team_id = %s" % (self.game['id'], self.game['away_team_id']))
 
 
     def _getHomePlayers(self):
-        return self.qry.query_dict("SELECT pnba.player_id, pnba.team_id, pnba.last_name, p.full_name, p.full_name_alt1, p.full_name_alt2 FROM player_nbacom_by_game pnba INNER JOIN player p ON p.id = pnba.player_id WHERE pnba.game_id = %s AND pnba.team_id = %s" % (self.game['id'], self.game['home_team_id']))
+        return self.qry.query_dict("SELECT pnba.player_id, pnba.team_id, p.last_name, p.full_name, p.full_name_alt1, p.full_name_alt2 FROM player_by_game pnba INNER JOIN player p ON p.id = pnba.player_id WHERE pnba.game_id = %s AND pnba.team_id = %s" % (self.game['id'], self.game['home_team_id']))
 
 
     def _convertToDict(self, data, key):

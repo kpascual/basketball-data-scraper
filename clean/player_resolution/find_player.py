@@ -41,10 +41,11 @@ class FindPlayer:
         result = self.dbobj.query("""
             SELECT p.id as 'player_id'
             FROM player p 
+                INNER JOIN player_by_game pbg ON pbg.player_id = p.id
             WHERE
-                nbacom_player_tag LIKE '%s,%%'
-                OR nbacom_player_tag LIKE '%%,%s%%'
-                OR nbacom_player_tag = '%s'
+                p.nbacom_player_tag LIKE '%s,%%'
+                OR p.nbacom_player_tag LIKE '%%,%s%%'
+                OR p.nbacom_player_tag = '%s'
         """ % (player_tag, player_tag, player_tag))
 
         if result:
