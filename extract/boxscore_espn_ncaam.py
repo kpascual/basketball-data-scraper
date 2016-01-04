@@ -1,7 +1,6 @@
 from config import constants
 from bs4 import BeautifulSoup
 import csv
-import unicode_csv
 import re
 import logging
 import json
