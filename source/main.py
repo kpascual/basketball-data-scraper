@@ -49,6 +49,10 @@ def func_playbyplay_espn(game, url):
     return getSourceDoc(url.replace('<game_id>',str(game['espn_game_id']))) 
 
 
+def func_playbyplay_espn_v2016(game, url):
+    return getSourceDoc(url.replace('<game_id>',str(game['espn_game_id']))) 
+
+
 def func_shotchart_espn(game, url):
     return getSourceDoc(url.replace('<game_id>',str(game['espn_game_id']))) 
 
