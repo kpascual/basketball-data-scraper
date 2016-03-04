@@ -46,7 +46,8 @@ class Clean:
             self.replaceWithConformedTime,
             self.addGameId,
             self.identifyPlays,
-            self.fillInEmptyFields
+            self.fillInEmptyFields,
+            self.addPlayIndex
         ]
 
         all_plays = self.plays
@@ -62,9 +63,10 @@ class Clean:
         self._getTeams()
 
         cleaning_functions = [
+            self.replaceWithConformedTime,
+            self.addPlayIndex,
             self.guessUnknownQuarters,
             self.replaceBlankScores,
-            self.replaceWithConformedTime,
             self.addGameId,
             self.identifyPlays,
             self.fillInEmptyFields
@@ -170,6 +172,17 @@ class Clean:
             
 
             newdata.append(line)
+
+        return newdata
+
+
+    def addPlayIndex(self, data):
+        newdata = []
+
+        sorted_data = sorted(data, key=lambda x: (x['period'], -x['deciseconds_left']))
+        for i, row in enumerate(sorted_data):
+            row['play_index'] = i
+            newdata.append(row)
 
         return newdata
 
