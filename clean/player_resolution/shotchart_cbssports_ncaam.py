@@ -155,6 +155,7 @@ class PlayerCbsSports:
                     player_data = {
                         'player_id': player_id,
                         'game_id': row['game_id'],
+                        'team_id': row['team_id'],
                         'jersey_number': row['jersey_number'],
                         'position': row['position']
                     }

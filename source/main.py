@@ -56,6 +56,9 @@ def func_playbyplay_espn_v2016(game, url):
 def func_shotchart_espn(game, url):
     return getSourceDoc(url.replace('<game_id>',str(game['espn_game_id']))) 
 
+def func_shotchart_espn_v2016(game, url):
+    return getSourceDoc(url.replace('<game_id>',str(game['espn_game_id']))) 
+
 
 def func_shotchart_wnbacom(game, url):
     return getSourceDoc(url.replace('<game_id>',str(game['nbacom_game_id'])).replace('<year>',game['nbacom_season_name'])) 
@@ -88,6 +91,9 @@ def func_shotchart_espn_wnba(game, url):
     return getSourceDoc(url.replace('<game_id>',str(game['espn_game_id']))) 
 
 def func_playbyplay_espn_ncaam(game, url):
+    return getSourceDoc(url.replace('<game_id>',str(game['espn_game_id']))) 
+
+def func_playbyplay_espn_ncaam_v2016(game, url):
     return getSourceDoc(url.replace('<game_id>',str(game['espn_game_id']))) 
 
 def func_shotchart_cbssports_ncaam(game, url):
