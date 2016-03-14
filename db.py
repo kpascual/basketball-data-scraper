@@ -40,6 +40,9 @@ class Db:
 
 
     def insert_or_update(self, table_name, data):
+        curs = self.curs()
+        lastrowid = None
+
         for line in data:
             headers = [key for key,val in sorted(line.items())]
             
@@ -53,7 +56,15 @@ class Db:
                 ON DUPLICATE KEY UPDATE
                 %s
             """ % (table_name, ','.join(headers), ','.join(quoted_values),','.join(duplicate_key_clauses))
-            self.query(sql)
+            curs.execute(sql)
+            lastrowid = curs.lastrowid
+
+        self.conn.commit()
+
+        if len(data) == 1:
+            return lastrowid
+        else:
+            return None
 
 class DbLite:
 

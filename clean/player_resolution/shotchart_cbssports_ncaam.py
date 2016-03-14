@@ -57,15 +57,9 @@ class PlayerCbsSports:
         for row in query:
             player_id = self._matchWithResolvedPlayer(row['cbssports_player_id'], row['full_name'], row['team_id'], self.gamedata['id'])
             if player_id == 0:
-                player_data = {
-                    'cbssports_player_id'   : row['cbssports_player_id'],
-                    'full_name'             : row['full_name'],
-                    'first_name'            : row['first_name'],
-                    'last_name'             : row['last_name']
-                }
                 print "   + Adding new player: %s" % (row['full_name'])
-                self.addNewPlayer(player_data)
-                player_id = self.matchWithResolvedPlayer(row['cbssports_player_id'], row['full_name'], row['team_id'], self.gamedata['id'])
+                self.addNewPlayer(row['cbssports_player_id'], row['full_name'], row['first_name'], row['last_name'])
+                player_id = self._matchWithResolvedPlayer(row['cbssports_player_id'], row['full_name'], row['team_id'], self.gamedata['id'])
                 # Update _by_game table
                 append_data = {
                     'cbssports_player_id': row['cbssports_player_id'],
@@ -169,7 +163,13 @@ class PlayerCbsSports:
 
 
 
-    def addNewPlayer(self, data):
+    def addNewPlayer(self, cbssports_player_id, full_name, first_name, last_name):
+        data = {
+            'cbssports_player_id'   : cbssports_player_id,
+            'full_name'             : full_name,
+            'first_name'            : first_name,
+            'last_name'             : last_name
+        }
         self.dbobj.insert_or_update('player', [data])
                 
 
